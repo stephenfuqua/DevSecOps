@@ -1,0 +1,70 @@
+# This workflow will not be useful verbatim - please customize for the project.
+# SPDX-License-Identifier: Apache-2.0
+# Licensed to the Ed-Fi Alliance under one or more agreements.
+# The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+# See the LICENSE and NOTICES files in the project root for more information.
+
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+
+env:
+  DB_PASS: temporaryDbP@ssw0rd!
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    # Only use when integration / end-to-end tests need SQL Server
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: ${{ env.DB_PASS }}
+          ACCEPT_EULA: 'Y'
+        ports:
+          - 1433:1433
+
+    steps:
+    - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@499789684c9a0d41c9b3f0d66a785ba17b1d51ab # v1.9.0
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Build
+      run: dotnet build
+      shell: pwsh
+
+    - name: Run unit tests
+      run: dotnet test
+      shell: pwsh
+
+    - name: Upload code analysis results for Project X
+      uses: github/codeql-action/upload-sarif@81b419c908d540ec4c7da9bfb4b5d941fca8f624
+      with:
+        # Path to SARIF file relative to the root of the repository
+        sarif_file: directory/results.sarif
+        # Optional category for the results
+        # Used to differentiate multiple results for one commit
+        category: EdFi.ProjectX
+
+    - name: Upload Unit test results
+      uses: dorny/test-reporter@0d00bb14cb0cc2c9b8985df6e81dd333188224e1 #v1.5.0
+      if: success() || failure()
+      with:
+        name: .NET Tests
+        path: "**/test-results.trx"    # Path to test results
+        reporter: dotnet-trx

@@ -2,13 +2,22 @@
 
 ## Common
 
-These tools are appropriate in all .NET repositories.
+These tools are appropriate in all .NET repositories:
 
 * [Directory.Build.props](common/Directory.Build.props)
 * GitHub Actions
   * [Sample Build Workflow](common/sample-build-workflow.yml)
   * [Sample CodeQL Scanning Workflow](common/sample-codeql-workflow.yml)
   * [Sample Dependency Review Workflow](../common/sample-dependencies-workflow.ymik)
+
+Also, for code quality checking, install the following NuGet packages in each
+project:
+
+```bash
+dotnet add package Microsoft.CodeAnalysis
+dotnet add package Microsoft.CodeAnalysis.CSharp.CodeStyle
+dotnet add package SonarAnalyzer.CSharp
+```
 
 ## Open Source
 

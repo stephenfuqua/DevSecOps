@@ -1,0 +1,56 @@
+name: "Test"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allow running on any branch through button-click
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Full testing process
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      pull-requests: write
+      statuses: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'typescript' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
+
+    - name: NPM caching
+      uses: actions/setup-node@17f8bd926464a1afa4c6a11669539e9c1ba77048 # v3.2.0
+      with:
+        node-version: '16'
+        cache: 'yarn'
+        cache-dependency-path: '**/yarn.lock'
+
+    - name: Install dependencies
+      run: yarn install
+      working-directory: Meadowlark-js
+
+    - name: Linter
+      run: yarn test:lint
+      working-directory: Meadowlark-js
+
+    - name: Unit tests with code coverage
+      run: yarn test:unit:coverage --ci
+      working-directory: Meadowlark-js
+
+    - name: Archive coverage results
+      uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v3.1.0
+      with:
+        name: code-coverage-report
+        path: Meadowlark-js/coverage/lcov-report
+
+    # This needs to upload test results with the dorny-reporter, coming soon.

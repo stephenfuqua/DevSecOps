@@ -2,7 +2,9 @@
 
 Ed-Fi organizational tools for supporting code analysis, DevSecOps, etc.
 
+* [JavaScript and Typescript](javascript/README.md)
 * [.NET Tools](dotnet/README.md)
+* [Python](python/README.md)
 
 ## Legal Information
 

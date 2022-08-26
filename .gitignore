@@ -1,0 +1,10 @@
+edfi-repo-auditor/.env
+
+/**/__pycache__/
+/**/.pyc
+/**/.coverage
+
+edfi-repo-auditor/reports/*.json
+
+
+**/*junit.xml

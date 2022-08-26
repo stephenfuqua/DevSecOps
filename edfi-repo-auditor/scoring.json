@@ -1,0 +1,28 @@
+{
+    "threshold": 20,
+    "rules": {
+        "Has Actions": 5,
+        "Uses CodeQL": 5,
+        "Uses only approved GitHub Actions": 5,
+        "Uses Test Reporter": 3,
+        "Has README": 3,
+        "Has CONTRIBUTORS": 1,
+        "Has NOTICES": 1,
+        "Has LICENSE": 1,
+        "Requires Signed commits": 3,
+        "Requires Code review": 3,
+        "Requires PR": 3,
+        "Admin cannot bypass PR": 1,
+        "Wiki Disabled": 1,
+        "Issues Disabled": 1,
+        "Projects Disabled": 1,
+        "Discussions Disabled": 1,
+        "Has Unit Tests": 5,
+        "Has Linter": 3,
+        "Deletes head branch": 1,
+        "Uses Squash Merge": 1,
+        "License Information": 3,
+        "Dependabot Enabled": 5,
+        "Dependabot Alerts": -5
+    }
+}

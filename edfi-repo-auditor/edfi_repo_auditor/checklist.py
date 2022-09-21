@@ -44,7 +44,7 @@ CHECKLIST = checklist(
               },
               APPROVED_ACTIONS={
                 "description": "Uses only approved GitHub Actions",
-                "fail": "Consider using only approved GH Actions"
+                "fail": "No. Consider using only approved GH Actions"
               },
               TEST_REPORTER={
                 "description": "Uses Test Reporter",
@@ -60,19 +60,19 @@ CHECKLIST = checklist(
               },
               SIGNED_COMMITS={
                 "description": "Requires Signed commits",
-                "fail": "Commits should be signed"
+                "fail": "No. Commits should be signed"
               },
               CODE_REVIEW={
                 "description": "Requires Code review",
-                "fail": "Code review not required"
+                "fail": "Code reviews are not required"
               },
               REQUIRES_PR={
                 "description": "Requires PR",
-                "fail": "Can push without PR"
+                "fail": "Does not require PR"
               },
               ADMIN_PR={
                 "description": "Admin cannot bypass PR",
-                "fail": "Admin can bypass"
+                "fail": "Admin can bypass without PR"
               },
               WIKI={
                 "description": "Wiki Disabled",
@@ -92,11 +92,11 @@ CHECKLIST = checklist(
               },
               DELETES_HEAD={
                 "description": "Deletes head branch",
-                "fail": "Branch should be deleted on merge"
+                "fail": "No. Branch should be deleted on merge"
               },
               USES_SQUASH={
                 "description": "Uses Squash Merge",
-                "fail": "Should use squash merges"
+                "fail": "No. Should use squash merges"
               },
               LICENSE_INFORMATION={
                 "description": "License Information",

@@ -8,3 +8,6 @@ edfi-repo-auditor/reports/*.json
 
 
 **/*junit.xml
+
+
+*.html

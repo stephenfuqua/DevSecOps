@@ -28,54 +28,39 @@ def describe_when_checking_for_dependabot() -> None:
 
     def describe_given_valid_information() -> None:
         def describe_given_has_dependabot() -> None:
-
             @pytest.fixture
             def result() -> bool:
                 with requests_mock.Mocker() as m:
-                    m.get(
-                        DEPENDABOT_URL,
-                        status_code=HTTPStatus.NO_CONTENT
-                    )
+                    m.get(DEPENDABOT_URL, status_code=HTTPStatus.NO_CONTENT)
                     return GitHubClient(ACCESS_TOKEN).has_dependabot_enabled(
-                        OWNER,
-                        REPO
+                        OWNER, REPO
                     )
 
             def it_returns_true(result: bool) -> None:
                 assert result is True
 
         def describe_given_no_dependabot() -> None:
-
             @pytest.fixture
             def result() -> bool:
                 with requests_mock.Mocker() as m:
-                    m.get(
-                        DEPENDABOT_URL,
-                        status_code=HTTPStatus.NOT_FOUND
-                    )
+                    m.get(DEPENDABOT_URL, status_code=HTTPStatus.NOT_FOUND)
 
                     return GitHubClient(ACCESS_TOKEN).has_dependabot_enabled(
-                            OWNER,
-                            REPO
-                        )
+                        OWNER, REPO
+                    )
 
             def it_returns_false(result: bool) -> None:
                 assert result is False
 
         def describe_given_no_admin_permission() -> None:
-
             @pytest.fixture
             def result() -> bool:
                 with requests_mock.Mocker() as m:
-                    m.get(
-                        DEPENDABOT_URL,
-                        status_code=HTTPStatus.NOT_FOUND
-                    )
+                    m.get(DEPENDABOT_URL, status_code=HTTPStatus.NOT_FOUND)
 
                     return GitHubClient("non-@dm!nT0Ken").has_dependabot_enabled(
-                            OWNER,
-                            REPO
-                        )
+                        OWNER, REPO
+                    )
 
             def it_returns_false(result: bool) -> None:
                 assert result is False

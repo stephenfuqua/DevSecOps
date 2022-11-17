@@ -9,12 +9,20 @@ import os
 import re
 import time
 from typing import List
-from edfi_repo_auditor.checklist import CHECKLIST, CHECKLIST_DEFAULT_SUCCESS_MESSAGE, get_message
+from datetime import datetime, timedelta
+
+from pprint import pformat
+import pandas as pd
+
+from edfi_repo_auditor.checklist import (
+    CHECKLIST,
+    CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
+    get_message,
+)
 
 from edfi_repo_auditor.config import Configuration
 from edfi_repo_auditor.github_client import GitHubClient
-from datetime import datetime, timedelta
-from pprint import pformat
+from edfi_repo_auditor.html_report import convert_to_html
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -28,9 +36,14 @@ def run_audit(config: Configuration) -> None:
     start = time.time()
     client = GitHubClient(config.personal_access_token)
 
-    repositories = config.repositories if len(config.repositories) > 0 else client.get_repositories(config.organization)
+    repositories = (
+        config.repositories
+        if len(config.repositories) > 0
+        else client.get_repositories(config.organization)
+    )
 
-    report: dict = {}
+    report_json: dict = {}
+    report_data = []
     for repo in repositories:
         logger.info(f"Scanning repository {repo}")
         repo_config = get_repo_information(client, config.organization, repo)
@@ -45,18 +58,39 @@ def run_audit(config: Configuration) -> None:
         score = get_result(results, auditing_rules["rules"])
         logger.debug(f"Rules to follow: {auditing_rules}")
 
-        report[repo] = {
+        report_json[repo] = {
             "score": score,
-            "result": "OK" if score > auditing_rules["threshold"] else "Action required",
-            "description": results
+            "result": "OK"
+            if score > auditing_rules["threshold"]
+            else "Action required",
+            "description": results,
         }
 
-    if config.save_results is True:
-        save_to_file(report, config.file_name)
-    else:
-        logger.info(pformat(report))
+        report_data.append(
+            {
+                "repository": repo,
+                "result": "OK"
+                if score > auditing_rules["threshold"]
+                else "Action required",
+                **actions,
+                **file_review,
+                **repo_config,
+            }
+        )
 
-    logger.info(f"Finished auditing repositories for {config.organization} in {'{:.2f}'.format(time.time() - start)} seconds")
+    df = pd.DataFrame(report_data)
+
+    if config.save_results is True:
+        save_to_json(report_json, config.file_name)
+        save_to_csv(df, config.file_name)
+        convert_to_html()
+
+    else:
+        logger.info(pformat(report_json))
+
+    logger.info(
+        f"Finished auditing repositories for {config.organization} in {'{:.2f}'.format(time.time() - start)} seconds"
+    )
 
 
 def audit_actions(client: GitHubClient, organization: str, repository: str) -> dict:
@@ -66,11 +100,15 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
 
     logger.debug(f"Got {actions['total_count']} workflow files")
 
-    audit_results[CHECKLIST.HAS_ACTIONS["description"]] = get_message(CHECKLIST.HAS_ACTIONS, actions["total_count"] > 0)
+    audit_results[CHECKLIST.HAS_ACTIONS["description"]] = get_message(
+        CHECKLIST.HAS_ACTIONS, actions["total_count"] > 0
+    )
 
     ut_pattern = re.compile(r"unit.{0,2}test(s)?", flags=re.IGNORECASE)
     lint_pattern = re.compile(r"lint(er)?(s)?(ing)?", flags=re.IGNORECASE)
-    workflow_paths = [actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]]
+    workflow_paths = [
+        actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]
+    ]
 
     for file_path in workflow_paths:
         file_content = client.get_file_content(organization, repository, file_path)
@@ -78,76 +116,150 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
             logger.debug("File not found")
             continue
 
-        if CHECKLIST.CODEQL["description"] not in audit_results or audit_results[CHECKLIST.CODEQL["description"]] == CHECKLIST.CODEQL["fail"]:
+        if (
+            CHECKLIST.CODEQL["description"] not in audit_results
+            or audit_results[CHECKLIST.CODEQL["description"]]
+            == CHECKLIST.CODEQL["fail"]
+        ):
             audit_results[CHECKLIST.CODEQL["description"]] = get_message(
-                CHECKLIST.CODEQL,
-                "uses: github/codeql-action/analyze" in file_content)
+                CHECKLIST.CODEQL, "uses: github/codeql-action/analyze" in file_content
+            )
 
-        if CHECKLIST.APPROVED_ACTIONS["description"] not in audit_results or audit_results[CHECKLIST.APPROVED_ACTIONS["description"]] == CHECKLIST.APPROVED_ACTIONS["fail"]:
+        if (
+            CHECKLIST.APPROVED_ACTIONS["description"] not in audit_results
+            or audit_results[CHECKLIST.APPROVED_ACTIONS["description"]]
+            == CHECKLIST.APPROVED_ACTIONS["fail"]
+        ):
             audit_results[CHECKLIST.APPROVED_ACTIONS["description"]] = get_message(
                 CHECKLIST.APPROVED_ACTIONS,
-                "uses: ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner.yml" in file_content)
+                "uses: ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner.yml"
+                in file_content,
+            )
 
-        if CHECKLIST.TEST_REPORTER["description"] not in audit_results or audit_results[CHECKLIST.TEST_REPORTER["description"]] == CHECKLIST.TEST_REPORTER["fail"]:
+        if (
+            CHECKLIST.TEST_REPORTER["description"] not in audit_results
+            or audit_results[CHECKLIST.TEST_REPORTER["description"]]
+            == CHECKLIST.TEST_REPORTER["fail"]
+        ):
             audit_results[CHECKLIST.TEST_REPORTER["description"]] = get_message(
-                CHECKLIST.TEST_REPORTER,
-                "uses: dorny/test-reporter" in file_content)
+                CHECKLIST.TEST_REPORTER, "uses: dorny/test-reporter" in file_content
+            )
 
-        if CHECKLIST.UNIT_TESTS["description"] not in audit_results or audit_results[CHECKLIST.UNIT_TESTS["description"]] == CHECKLIST.UNIT_TESTS["fail"]:
+        if (
+            CHECKLIST.UNIT_TESTS["description"] not in audit_results
+            or audit_results[CHECKLIST.UNIT_TESTS["description"]]
+            == CHECKLIST.UNIT_TESTS["fail"]
+        ):
             audit_results[CHECKLIST.UNIT_TESTS["description"]] = get_message(
-                CHECKLIST.UNIT_TESTS,
-                ut_pattern.search(file_content) is not None)
+                CHECKLIST.UNIT_TESTS, ut_pattern.search(file_content) is not None
+            )
 
-        if CHECKLIST.LINTER["description"] not in audit_results or audit_results[CHECKLIST.LINTER["description"]] == CHECKLIST.LINTER["fail"]:
-            audit_results[CHECKLIST.LINTER["description"]] = get_message(CHECKLIST.LINTER, lint_pattern.search(file_content) is not None)
+        if (
+            CHECKLIST.LINTER["description"] not in audit_results
+            or audit_results[CHECKLIST.LINTER["description"]]
+            == CHECKLIST.LINTER["fail"]
+        ):
+            audit_results[CHECKLIST.LINTER["description"]] = get_message(
+                CHECKLIST.LINTER, lint_pattern.search(file_content) is not None
+            )
 
     return audit_results
 
 
-def get_repo_information(client: GitHubClient, organization: str, repository: str) -> dict:
+def get_repo_information(
+    client: GitHubClient, organization: str, repository: str
+) -> dict:
     information = client.get_repository_information(organization, repository)
 
-    dependabot_results = audit_alerts(client, organization, repository,
-                                      information["vulnerabilityAlerts"]["nodes"])
+    dependabot_results = audit_alerts(
+        client, organization, repository, information["vulnerabilityAlerts"]["nodes"]
+    )
 
-    rulesForMain = [rules for rules in information["branchProtectionRules"]["nodes"] if rules["pattern"] == "main"]
+    rulesForMain = [
+        rules
+        for rules in information["branchProtectionRules"]["nodes"]
+        if rules["pattern"] == "main"
+    ]
     rules = rulesForMain[0] if rulesForMain else None
 
     logger.debug(f"Repository information: {information}")
     logger.debug(f"Rules for main: {rules}")
 
-    return {**{
-        CHECKLIST.SIGNED_COMMITS["description"]: get_message(CHECKLIST.SIGNED_COMMITS, rules and rules["requiresCommitSignatures"]),
-        CHECKLIST.CODE_REVIEW["description"]: get_message(CHECKLIST.CODE_REVIEW, rules and rules["requiresApprovingReviews"]),
-        CHECKLIST.REQUIRES_PR["description"]: get_message(CHECKLIST.REQUIRES_PR, rules and rules["requiresApprovingReviews"]),
-        CHECKLIST.ADMIN_PR["description"]: get_message(CHECKLIST.ADMIN_PR, rules and rules["isAdminEnforced"] is False),
-        CHECKLIST.WIKI["description"]: get_message(CHECKLIST.WIKI, not information["hasWikiEnabled"]),
-        CHECKLIST.ISSUES["description"]: get_message(CHECKLIST.DISCUSSIONS, not information["hasIssuesEnabled"]),
-        CHECKLIST.PROJECTS["description"]: get_message(CHECKLIST.PROJECTS, not information["hasProjectsEnabled"]),
-        CHECKLIST.DISCUSSIONS["description"]: get_message(CHECKLIST.DISCUSSIONS, information["discussions"]["totalCount"] == 0),
-        CHECKLIST.DELETES_HEAD["description"]: get_message(CHECKLIST.DELETES_HEAD, information["deleteBranchOnMerge"]),
-        CHECKLIST.USES_SQUASH["description"]: get_message(CHECKLIST.USES_SQUASH, information["squashMergeAllowed"]),
-        CHECKLIST.LICENSE_INFORMATION["description"]: get_message(CHECKLIST.LICENSE_INFORMATION, information["licenseInfo"] is not None),
-    }, **dependabot_results}
+    return {
+        **{
+            CHECKLIST.SIGNED_COMMITS["description"]: get_message(
+                CHECKLIST.SIGNED_COMMITS, rules and rules["requiresCommitSignatures"]
+            ),
+            CHECKLIST.CODE_REVIEW["description"]: get_message(
+                CHECKLIST.CODE_REVIEW, rules and rules["requiresApprovingReviews"]
+            ),
+            CHECKLIST.REQUIRES_PR["description"]: get_message(
+                CHECKLIST.REQUIRES_PR, rules and rules["requiresApprovingReviews"]
+            ),
+            CHECKLIST.ADMIN_PR["description"]: get_message(
+                CHECKLIST.ADMIN_PR, rules and rules["isAdminEnforced"] is False
+            ),
+            CHECKLIST.WIKI["description"]: get_message(
+                CHECKLIST.WIKI, not information["hasWikiEnabled"]
+            ),
+            CHECKLIST.ISSUES["description"]: get_message(
+                CHECKLIST.DISCUSSIONS, not information["hasIssuesEnabled"]
+            ),
+            CHECKLIST.PROJECTS["description"]: get_message(
+                CHECKLIST.PROJECTS, not information["hasProjectsEnabled"]
+            ),
+            CHECKLIST.DISCUSSIONS["description"]: get_message(
+                CHECKLIST.DISCUSSIONS, information["discussions"]["totalCount"] == 0
+            ),
+            CHECKLIST.DELETES_HEAD["description"]: get_message(
+                CHECKLIST.DELETES_HEAD, information["deleteBranchOnMerge"]
+            ),
+            CHECKLIST.USES_SQUASH["description"]: get_message(
+                CHECKLIST.USES_SQUASH, information["squashMergeAllowed"]
+            ),
+            CHECKLIST.LICENSE_INFORMATION["description"]: get_message(
+                CHECKLIST.LICENSE_INFORMATION, information["licenseInfo"] is not None
+            ),
+        },
+        **dependabot_results,
+    }
 
 
-def audit_alerts(client: GitHubClient, organization: str, repository: str, alerts: List[dict]) -> dict:
-    vulnerabilities = [alerts for alerts in alerts
-                       if (alerts["createdAt"] < (datetime.now() - timedelta(ALERTS_WEEKS_SINCE_CREATED * 7)).isoformat() and
-                           alerts["securityVulnerability"]["advisory"]["severity"] in ALERTS_INCLUDED_SEVERITIES)]
+def audit_alerts(
+    client: GitHubClient, organization: str, repository: str, alerts: List[dict]
+) -> dict:
+    vulnerabilities = [
+        alerts
+        for alerts in alerts
+        if (
+            alerts["createdAt"]
+            < (datetime.now() - timedelta(ALERTS_WEEKS_SINCE_CREATED * 7)).isoformat()
+            and alerts["securityVulnerability"]["advisory"]["severity"]
+            in ALERTS_INCLUDED_SEVERITIES
+        )
+    ]
     total_vulnerabilities = len(vulnerabilities)
 
     dependabot_enabled = client.has_dependabot_enabled(organization, repository)
     return {
-        CHECKLIST.DEPENDABOT_ENABLED["description"]: get_message(CHECKLIST.DEPENDABOT_ENABLED, dependabot_enabled),
-        CHECKLIST.DEPENDABOT_ALERTS["description"]: get_message(CHECKLIST.DEPENDABOT_ALERTS, total_vulnerabilities == 0),
+        CHECKLIST.DEPENDABOT_ENABLED["description"]: get_message(
+            CHECKLIST.DEPENDABOT_ENABLED, dependabot_enabled
+        ),
+        CHECKLIST.DEPENDABOT_ALERTS["description"]: get_message(
+            CHECKLIST.DEPENDABOT_ALERTS, total_vulnerabilities == 0
+        ),
     }
 
 
 def review_files(client: GitHubClient, organization: str, repository: str) -> dict:
     file_audit: dict = {}
 
-    files_to_review = [CHECKLIST.README, CHECKLIST.CONTRIBUTORS, CHECKLIST.NOTICES, CHECKLIST.LICENSE]
+    files_to_review = [
+        CHECKLIST.README,
+        CHECKLIST.CONTRIBUTORS,
+        CHECKLIST.NOTICES,
+        CHECKLIST.LICENSE,
+    ]
 
     for file in files_to_review:
         file_found = False
@@ -155,7 +267,9 @@ def review_files(client: GitHubClient, organization: str, repository: str) -> di
             if file_found:
                 # There are multiple possible file names, and one of them was already detected
                 break
-            file_found = client.get_file_content(organization, repository, filename) is not None
+            file_found = (
+                client.get_file_content(organization, repository, filename) is not None
+            )
 
         file_audit[file["description"]] = get_message(file, file_found)
 
@@ -167,7 +281,7 @@ def get_result(results: dict, rules: dict) -> int:
 
     for property in rules:
         try:
-            if (results[property] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE):
+            if results[property] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE:
                 score += rules[property]
         except KeyError:
             logger.info(f"Unable to read property {property} in results")
@@ -175,14 +289,14 @@ def get_result(results: dict, rules: dict) -> int:
     return score
 
 
-def save_to_file(report: dict, file_name: str) -> None:
+def save_to_json(report: dict, file_name: str) -> None:
     folder_name = "reports"
 
     path: str = ""
     if file_name:
         _, ext = os.path.splitext(file_name)
-        if (not ext) or (ext != '.json'):
-            file_name += '.json'
+        if (not ext) or (ext != ".json"):
+            file_name += ".json"
         path = f"{folder_name}/{file_name}"
     else:
         path = f"{folder_name}/audit-result.json"
@@ -195,6 +309,23 @@ def save_to_file(report: dict, file_name: str) -> None:
 
     with open(path, "w") as outfile:
         outfile.write(json_report)
+
+
+def save_to_csv(report: pd.DataFrame, file_name: str) -> None:
+    folder_name = "reports"
+
+    path: str = ""
+    if file_name:
+        _, ext = os.path.splitext(file_name)
+        if (not ext) or (ext != ".csv"):
+            file_name += ".csv"
+        path = f"{folder_name}/{file_name}"
+    else:
+        path = f"{folder_name}/audit-result.csv"
+
+    logger.info(f"Saving report to {path}")
+
+    report.to_csv(path, index=False)
 
 
 def get_file() -> dict:

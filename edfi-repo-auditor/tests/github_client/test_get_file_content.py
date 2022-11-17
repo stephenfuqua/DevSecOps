@@ -54,9 +54,7 @@ def describe_when_getting_file() -> None:
                         text=FILE_RESULT,
                     )
                     return GitHubClient(ACCESS_TOKEN).get_file_content(
-                        OWNER,
-                        REPO,
-                        "README.md"
+                        OWNER, REPO, "README.md"
                     )
 
             def it_returns_the_decoded_file_content(results: str) -> None:
@@ -84,7 +82,5 @@ def describe_when_getting_file() -> None:
                     )
                     with pytest.raises(RuntimeError):
                         GitHubClient(ACCESS_TOKEN).get_file_content(
-                            OWNER,
-                            REPO,
-                            "README.md"
+                            OWNER, REPO, "README.md"
                         )

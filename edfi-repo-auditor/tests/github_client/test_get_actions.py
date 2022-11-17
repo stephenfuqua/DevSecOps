@@ -54,16 +54,15 @@ def describe_when_getting_actions() -> None:
                         status_code=HTTPStatus.OK,
                         text=ACTIONS_RESULT,
                     )
-                    return GitHubClient(ACCESS_TOKEN).get_actions(
-                        OWNER,
-                        REPO
-                    )
+                    return GitHubClient(ACCESS_TOKEN).get_actions(OWNER, REPO)
 
             def it_returns_one_action(results: dict) -> None:
                 assert results["total_count"] == 1
 
             def it_returns_the_path_for_the_workflow(results: dict) -> None:
-                assert ".github/workflows/workflow.yml" == results["workflows"][0]["path"]
+                assert (
+                    ".github/workflows/workflow.yml" == results["workflows"][0]["path"]
+                )
 
             def it_returns_the_name_of_the_workflow(results: dict) -> None:
                 assert "A workflow file" == results["workflows"][0]["name"]
@@ -96,7 +95,4 @@ def describe_when_getting_actions() -> None:
                     )
 
                     with pytest.raises(RuntimeError):
-                        GitHubClient(ACCESS_TOKEN).get_actions(
-                            OWNER,
-                            REPO
-                        )
+                        GitHubClient(ACCESS_TOKEN).get_actions(OWNER, REPO)

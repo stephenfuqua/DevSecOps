@@ -18,15 +18,12 @@ def describe_when_auditing_actions() -> None:
     def describe_given_reviewing_codeql() -> None:
         @pytest.fixture
         def actions() -> dict:
-            return {
-                "total_count": 1,
-                "workflows": [{
-                    "path": "test-action.yml"
-                }]
-            }
+            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_failure_message_when_no_codeql(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_failure_message_when_no_codeql(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Analyze
             """
@@ -35,8 +32,10 @@ def describe_when_auditing_actions() -> None:
             results = audit_actions(mock_client, OWNER, REPO)
             assert results[CHECKLIST.CODEQL["description"]] == CHECKLIST.CODEQL["fail"]
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_success_message_when_has_codeql(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_success_message_when_has_codeql(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Analyze
                   uses: github/codeql-action/analyze
@@ -44,20 +43,20 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.CODEQL["description"]] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            assert (
+                results[CHECKLIST.CODEQL["description"]]
+                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            )
 
     def describe_given_reviewing_allowed_list() -> None:
         @pytest.fixture
         def actions() -> dict:
-            return {
-                "total_count": 1,
-                "workflows": [{
-                    "path": "test-action.yml"
-                }]
-            }
+            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_fail_message_when_uses_any_action(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_fail_message_when_uses_any_action(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Scan
                   uses: fake-action/allowed-list
@@ -65,10 +64,15 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.APPROVED_ACTIONS["description"]] == CHECKLIST.APPROVED_ACTIONS["fail"]
+            assert (
+                results[CHECKLIST.APPROVED_ACTIONS["description"]]
+                == CHECKLIST.APPROVED_ACTIONS["fail"]
+            )
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_success_message_when_uses_approved_actions(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_success_message_when_uses_approved_actions(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Scan
                   uses: ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner.yml
@@ -76,30 +80,35 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.APPROVED_ACTIONS["description"]] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            assert (
+                results[CHECKLIST.APPROVED_ACTIONS["description"]]
+                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            )
 
     def describe_given_reviewing_test_reporter() -> None:
         @pytest.fixture
         def actions() -> dict:
-            return {
-                "total_count": 1,
-                "workflows": [{
-                    "path": "test-action.yml"
-                }]
-            }
+            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_fail_message_when_no_test_reporter(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_fail_message_when_no_test_reporter(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Integration Tests
             """
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.TEST_REPORTER["description"]] == CHECKLIST.TEST_REPORTER["fail"]
+            assert (
+                results[CHECKLIST.TEST_REPORTER["description"]]
+                == CHECKLIST.TEST_REPORTER["fail"]
+            )
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_success_message_when_has_test_reporter(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_success_message_when_has_test_reporter(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Integration Tests Report
                 uses: dorny/test-reporter
@@ -107,20 +116,20 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.TEST_REPORTER["description"]] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            assert (
+                results[CHECKLIST.TEST_REPORTER["description"]]
+                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            )
 
     def describe_given_reviewing_unit_tests() -> None:
         @pytest.fixture
         def actions() -> dict:
-            return {
-                "total_count": 1,
-                "workflows": [{
-                    "path": "test-action.yml"
-                }]
-            }
+            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_success_message_when_has_unit_tests(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_success_message_when_has_unit_tests(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Unit Tests with coverage
             """
@@ -128,30 +137,35 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.UNIT_TESTS["description"]] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            assert (
+                results[CHECKLIST.UNIT_TESTS["description"]]
+                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            )
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_fail_message_when_no_unit_tests(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_fail_message_when_no_unit_tests(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Integration Tests
             """
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.UNIT_TESTS["description"]] == CHECKLIST.UNIT_TESTS["fail"]
+            assert (
+                results[CHECKLIST.UNIT_TESTS["description"]]
+                == CHECKLIST.UNIT_TESTS["fail"]
+            )
 
     def describe_given_reviewing_linter() -> None:
         @pytest.fixture
         def actions() -> dict:
-            return {
-                "total_count": 1,
-                "workflows": [{
-                    "path": "test-action.yml"
-                }]
-            }
+            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
-        def it_returns_success_message_when_has_linter(mock_client, actions: dict) -> None:
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
+        def it_returns_success_message_when_has_linter(
+            mock_client, actions: dict
+        ) -> None:
             file_content = """
                 - name: Linter
             """
@@ -159,9 +173,12 @@ def describe_when_auditing_actions() -> None:
             mock_client.get_actions.return_value = actions
             mock_client.get_file_content.return_value = file_content
             results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.LINTER["description"]] == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            assert (
+                results[CHECKLIST.LINTER["description"]]
+                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
+            )
 
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
         def it_returns_false_when_no_linter(mock_client, actions: dict) -> None:
             file_content = """
                 - name: Review and correct

@@ -86,7 +86,9 @@ class GitHubClient:
             raise ValueError("access_token cannot be blank")
         self.access_token = access_token
 
-    def _execute_api_call(self, description: str, method: str, url: str, payload: str = None) -> dict:
+    def _execute_api_call(
+        self, description: str, method: str, url: str, payload: str = None
+    ) -> dict:
         headers = {
             "Authorization": f"bearer {self.access_token}",
             "Content-Type": "application/json",
@@ -133,7 +135,9 @@ class GitHubClient:
 
         total_repos = body["data"]["organization"]["repositories"]["totalCount"]
         if total_repos > 100:
-            logger.warning(f"There are over 100 repos in {owner}. Update the query to handle pagination")
+            logger.warning(
+                f"There are over 100 repos in {owner}. Update the query to handle pagination"
+            )
 
         df = pd.DataFrame(body["data"]["organization"]["repositories"]["nodes"])
         return df["name"].to_list()
@@ -145,7 +149,9 @@ class GitHubClient:
             raise ValueError("repository cannot be blank")
 
         actions = self._execute_api_call(
-            f"Getting actions for {owner}/{repository}", "GET", f"{API_URL}/repos/{owner}/{repository}/actions/workflows"
+            f"Getting actions for {owner}/{repository}",
+            "GET",
+            f"{API_URL}/repos/{owner}/{repository}/actions/workflows",
         )
         return actions
 
@@ -174,7 +180,9 @@ class GitHubClient:
         has_dependabot = False
         try:
             dependabot = self._execute_api_call(
-                f"Getting actions for {owner}/{repository}", "GET", f"{API_URL}/repos/{owner}/{repository}/vulnerability-alerts"
+                f"Getting actions for {owner}/{repository}",
+                "GET",
+                f"{API_URL}/repos/{owner}/{repository}/vulnerability-alerts",
             )
             has_dependabot = dependabot["status_code"] == requests.codes.no_content
         except RuntimeError:
@@ -193,9 +201,15 @@ class GitHubClient:
         file_result = None
         try:
             file_result = self._execute_api_call(
-                f"Getting file {path} for {owner}/{repository}", "GET", f"{API_URL}/repos/{owner}/{repository}/contents/{path}"
+                f"Getting file {path} for {owner}/{repository}",
+                "GET",
+                f"{API_URL}/repos/{owner}/{repository}/contents/{path}",
             )
         except RuntimeError:
             pass
 
-        return base64.b64decode(file_result["content"]).decode('UTF-8') if file_result else None
+        return (
+            base64.b64decode(file_result["content"]).decode("UTF-8")
+            if file_result
+            else None
+        )

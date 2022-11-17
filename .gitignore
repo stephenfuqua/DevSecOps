@@ -4,10 +4,8 @@ edfi-repo-auditor/.env
 /**/.pyc
 /**/.coverage
 
-edfi-repo-auditor/reports/*.json
+edfi-repo-auditor/reports/*
 
 
 **/*junit.xml
 
-
-*.html

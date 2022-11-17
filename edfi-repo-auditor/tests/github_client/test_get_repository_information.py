@@ -82,18 +82,27 @@ def describe_when_getting_repository_information() -> None:
                         text=REPOSITORY_INFORMATION_RESULT,
                     )
                     return GitHubClient(ACCESS_TOKEN).get_repository_information(
-                        OWNER,
-                        REPO
+                        OWNER, REPO
                     )
 
             def it_returns_the_branch_protection_rules(results: dict) -> None:
                 assert len(results["branchProtectionRules"]["nodes"]) == 1
 
             def it_returns_if_requires_signatures(results: dict) -> None:
-                assert results["branchProtectionRules"]["nodes"][0]["requiresCommitSignatures"] is True
+                assert (
+                    results["branchProtectionRules"]["nodes"][0][
+                        "requiresCommitSignatures"
+                    ]
+                    is True
+                )
 
             def it_returns_if_requires_approving_reviews(results: dict) -> None:
-                assert results["branchProtectionRules"]["nodes"][0]["requiresApprovingReviews"] is True
+                assert (
+                    results["branchProtectionRules"]["nodes"][0][
+                        "requiresApprovingReviews"
+                    ]
+                    is True
+                )
 
             def it_returns_license_info(results: dict) -> None:
                 assert results["licenseInfo"]["key"] == "apache-2.0"
@@ -133,6 +142,5 @@ def describe_when_getting_repository_information() -> None:
 
                     with pytest.raises(RuntimeError):
                         GitHubClient(ACCESS_TOKEN).get_repository_information(
-                            OWNER,
-                            REPO
+                            OWNER, REPO
                         )

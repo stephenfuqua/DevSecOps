@@ -24,7 +24,7 @@ def describe_when_reviewing_files() -> None:
         }
 
         @pytest.fixture
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
         def results(mock_client) -> dict:
             mock_client.get_file_content.return_value = "Found"
             return review_files(mock_client, OWNER, REPO)
@@ -41,7 +41,7 @@ def describe_when_reviewing_files() -> None:
         }
 
         @pytest.fixture
-        @patch('edfi_repo_auditor.github_client.GitHubClient')
+        @patch("edfi_repo_auditor.github_client.GitHubClient")
         def results(mock_client) -> dict:
             mock_client.get_file_content.return_value = None
             return review_files(mock_client, OWNER, REPO)

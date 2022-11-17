@@ -90,5 +90,10 @@ def load_configuration(args_in: List[str]) -> Configuration:
     parsed = parser.parse_args(args_in)
 
     return Configuration(
-        parsed.organization, parsed.access_token, parsed.repositories, parsed.log_level, parsed.save_results, parsed.file_name
+        parsed.organization,
+        parsed.access_token,
+        parsed.repositories,
+        parsed.log_level,
+        parsed.save_results,
+        parsed.file_name,
     )

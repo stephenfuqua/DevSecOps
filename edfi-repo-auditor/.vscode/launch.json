@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Repo Auditor",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "edfi_repo_auditor/__main__.py",
             "console": "integratedTerminal",

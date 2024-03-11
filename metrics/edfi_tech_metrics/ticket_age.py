@@ -4,7 +4,6 @@
 # See the LICENSE and NOTICES files in the project root for more information.
 
 from dataclasses import dataclass
-from datetime import datetime
 from typing import List
 
 import pandas as pd
@@ -18,28 +17,6 @@ from plotnine import (
     labs,
 )
 import numpy as np
-import tzlocal
-
-from edfi_tech_metrics.jira import JiraBrowser
-from edfi_tech_metrics.settings import Configuration
-
-
-def get_age_unresolved_tickets(
-    conf: Configuration, browser: JiraBrowser, projects: List[str]
-) -> pd.DataFrame:
-    now = datetime.now(tzlocal.get_localzone())
-
-    data = []
-    for p in projects:
-        conf.info(f"Retrieving tickets for {p}")
-        data.extend(browser.get_project(p))
-
-    df = pd.DataFrame(columns=["project", "created"], data=data)
-
-    df["created"] = pd.to_datetime(df["created"], utc=True)
-    df["age"] = (now - df["created"]).dt.components.days
-
-    return df
 
 
 @dataclass

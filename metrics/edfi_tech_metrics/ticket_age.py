@@ -46,7 +46,7 @@ def build_report_components(
     teal = "#029386"
 
     for project in projects:
-        filtered = df[df["project"] == project]
+        filtered = df[df["project"] == project][["project", "age"]].copy()
 
         s = filtered["age"].std()
         m = filtered["age"].mean()

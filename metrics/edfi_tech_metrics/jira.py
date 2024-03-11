@@ -28,20 +28,20 @@ class JiraBrowser():
         self.jira = JIRA(conf.jira_base_url, token_auth=conf.jira_token)
 
     def get_page_of_issues(self, project_key: str, begin: str) -> IssuePage:
-        jql = f"project={project_key} AND key {begin} AND resolution = Unresolved order by created asc"
+        jql = f"project={project_key} {begin} AND resolution = Unresolved order by created asc"
         self.conf.debug(jql)
         issues: ResultList[Issue] = self.jira.search_issues(jql, maxResults=self.conf.page_size)  # type: ignore  # have never seen it return the alternate dictionary
 
-        last: Optional[str] = None
+        last: str = ""
         if len(issues) == self.conf.page_size:
-            last = str(issues[-1].key)
+            last = f"AND key >= {str(issues[-1].key)}"
 
         return IssuePage([(project_key, i.fields.created) for i in issues], last)
 
     def get_project(self, project: str) -> List[Tuple[str, Optional[str]]]:
         data = []
 
-        begin = f">= {project}-1"
+        begin = ""
 
         # "Do...While" type loop to get all pages of data.
         while True:
@@ -49,10 +49,10 @@ class JiraBrowser():
 
             data.extend(page.issue_list)
 
-            if page.last_key is None:
+            if page.last_key == "":
                 break
 
             # Next request to get_issues needs to look for items _after_ the last one received
-            begin = f"> {page.last_key}"
+            begin = page.last_key
 
         return data

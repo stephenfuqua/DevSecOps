@@ -6,7 +6,8 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
-from jira import JIRA
+from jira import JIRA, Issue
+from jira.client import ResultList
 
 
 from edfi_tech_metrics.settings import Configuration
@@ -15,7 +16,7 @@ from edfi_tech_metrics.settings import Configuration
 @dataclass
 class IssuePage:
     issue_list: List[Tuple[str, Optional[str]]]
-    last_key: str
+    last_key: Optional[str]
 
 
 class JiraBrowser():
@@ -29,15 +30,15 @@ class JiraBrowser():
     def get_page_of_issues(self, project_key: str, begin: str) -> IssuePage:
         jql = f"project={project_key} AND key {begin} AND resolution = Unresolved order by created asc"
         self.conf.debug(jql)
-        issues = self.jira.search_issues(jql, maxResults=self.conf.page_size)
+        issues: ResultList[Issue] = self.jira.search_issues(jql, maxResults=self.conf.page_size)  # type: ignore  # have never seen it return the alternate dictionary
 
-        last = None
+        last: Optional[str] = None
         if len(issues) == self.conf.page_size:
-            last = issues[-1].key
+            last = str(issues[-1].key)
 
         return IssuePage([(project_key, i.fields.created) for i in issues], last)
 
-    def get_project(self, project: str) -> List[List[str]]:
+    def get_project(self, project: str) -> List[Tuple[str, Optional[str]]]:
         data = []
 
         begin = f">= {project}-1"

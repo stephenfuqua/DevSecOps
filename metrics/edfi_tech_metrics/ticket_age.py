@@ -80,7 +80,7 @@ def build_report_components(
             + geom_density_highlight(region=region, fill=teal + "88", color="none")
             + geom_density(fill=teal + "44", color=teal, size=0.7)
             + annotate(geom_vline, xintercept=m)
-            + annotate(geom_vline, xintercept=region, color=teal, size=0.7)
+            + annotate(geom_vline, xintercept=region, color=teal, size=0.7)  # type: ignore  # xintercept accepting a tuple instead of a float must be undocumented
             + labs(
                 title=f"Unresolved Ticket Age for {project}", x="Age", y="Proportion"
             )

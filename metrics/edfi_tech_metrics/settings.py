@@ -53,10 +53,10 @@ def load_from_env() -> Configuration:
     load_dotenv()
 
     c = Configuration(
-        getenv("JIRA_TOKEN"),
-        getenv("JIRA_BASE_URL"),
+        getenv("JIRA_TOKEN", ""),
+        getenv("JIRA_BASE_URL", ""),
         getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL),
-        getenv("PAGE_SIZE", DEFAULT_PAGE_SIZE),
+        int(getenv("PAGE_SIZE", DEFAULT_PAGE_SIZE)),
     )
     configure_logging(c)
 

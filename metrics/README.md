@@ -11,6 +11,10 @@ Requires Python >= 3.10 and Poetry.
    ```none
    JIRA_TOKEN=<INSERT PERSONAL TOKEN FROM JIRA>
    JIRA_BASE_URL=https://tracker.ed-fi.org
+
+   # Optional
+   # LOG_LEVEL=<DEBUG,INFO,WARN,ERROR>
+   # PAGE_SIZE=100
    ```
 
 2. Install package dependencies: `poetry install`

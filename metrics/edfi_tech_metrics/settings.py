@@ -15,6 +15,7 @@ from termcolor import colored
 
 
 DEFAULT_LOG_LEVEL = "INFO"
+DEFAULT_PAGE_SIZE = 100
 
 
 @dataclass
@@ -26,6 +27,7 @@ class Configuration:
     jira_token: str
     jira_base_url: str
     log_level: str
+    page_size: int
 
     def info(self, message: str) -> None:
         if self.log_level in ("INFO", "DEBUG"):
@@ -52,8 +54,9 @@ def load_from_env() -> Configuration:
 
     c = Configuration(
         getenv("JIRA_TOKEN"),
-        getenv("JIRA_BASE_URL", DEFAULT_LOG_LEVEL),
-        getenv("LOG_LEVEL")
+        getenv("JIRA_BASE_URL"),
+        getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL),
+        getenv("PAGE_SIZE", DEFAULT_PAGE_SIZE),
     )
     configure_logging(c)
 
@@ -93,13 +96,19 @@ def load_configuration(args_in: List[str]) -> Configuration:
         choices=["ERROR", "WARNING", "INFO", "DEBUG"],
     )
 
+    parser.add(  # type: ignore
+        "-p",
+        "--page-size",
+        required=False,
+        help="Jira API page size",
+        default=DEFAULT_PAGE_SIZE,
+        type=int,
+        env_var="PAGE_SIZE",
+    )
+
     parsed = parser.parse_args(args_in)
 
-    c = Configuration(
-        parsed.token,
-        parsed.base_url,
-        parsed.log_level
-    )
+    c = Configuration(parsed.token, parsed.base_url, parsed.log_level, parsed.page_size)
     configure_logging(c)
 
     return c

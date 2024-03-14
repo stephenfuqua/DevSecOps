@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ed-Fi Community Hub
+    url: https://success.ed-fi.org
+    about: Use the Community Hub for all support topics. Support questions opened directly in this repository will be closed without action.

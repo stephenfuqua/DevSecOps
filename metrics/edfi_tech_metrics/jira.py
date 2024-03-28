@@ -21,7 +21,7 @@ STORY_POINTS_FIELD = "customfield_10004"
 
 @dataclass
 class IssuePage:
-    issue_list: List[Tuple[str, Optional[str]]]
+    issue_list: List[Tuple[str, ...]]
     last_key: Optional[str]
 
 
@@ -51,7 +51,7 @@ class JiraBrowser:
             last,
         )
 
-    def get_project(self, project: str) -> List[Tuple[str, Optional[str]]]:
+    def get_project(self, project: str) -> List[Tuple[str, ...]]:
         data = []
 
         begin = ""
@@ -66,7 +66,7 @@ class JiraBrowser:
                 break
 
             # Next request to get_issues needs to look for items _after_ the last one received
-            begin = page.last_key
+            begin = page.last_key or ""
 
         return data
 

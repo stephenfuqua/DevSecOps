@@ -1,4 +1,4 @@
-edfi-repo-auditor/.env
+.env
 
 /**/__pycache__/
 /**/.pyc
@@ -8,4 +8,4 @@ edfi-repo-auditor/reports/*
 
 
 **/*junit.xml
-
+**/.ipynb_checkpoints/*

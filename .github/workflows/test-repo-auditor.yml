@@ -37,7 +37,7 @@ jobs:
           cache: "poetry"
 
       - name: Install dependencies
-        run: poetry env use "3.10" && install
+        run: poetry env use "3.10" && poetry install
 
       - name: Lint
         run: poetry run flake8

@@ -87,7 +87,7 @@ class GitHubClient:
         self.access_token = access_token
 
     def _execute_api_call(
-        self, description: str, method: str, url: str, payload: str = None
+        self, description: str, method: str, url: str, payload: str = ""
     ) -> dict:
         headers = {
             "Authorization": f"bearer {self.access_token}",

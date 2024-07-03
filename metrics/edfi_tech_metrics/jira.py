@@ -35,7 +35,7 @@ class JiraBrowser:
 
     def get_page_of_issues(self, project_key: str, begin: str) -> IssuePage:
         jql = f"project={project_key} {begin} AND resolution = Unresolved order by created asc"
-        
+
         self.conf.debug(jql)
         fields = f"{STORY_POINTS_FIELD},key,created,fixVersions,issuetype"
         issues: ResultList[Issue] = self.jira.search_issues(jql, maxResults=self.conf.page_size, fields=fields)  # type: ignore  # have never seen it return the alternate dictionary
@@ -46,7 +46,14 @@ class JiraBrowser:
 
         return IssuePage(
             [
-                (project_key, i.key, i.fields.created, i.fields.customfield_10004, i.fields.fixVersions, i.fields.issuetype.name)
+                (
+                    project_key,
+                    i.key,
+                    i.fields.created,
+                    i.fields.customfield_10004,
+                    i.fields.fixVersions,
+                    i.fields.issuetype.name,
+                )
                 for i in issues
             ],
             last,
@@ -79,7 +86,10 @@ class JiraBrowser:
             self.conf.info(f"Retrieving tickets for {p}")
             data.extend(self.get_project(p))
 
-        df = pd.DataFrame(columns=["project", "key", "created", "points", "fixVersions", "issuetype"], data=data)
+        df = pd.DataFrame(
+            columns=["project", "key", "created", "points", "fixVersions", "issuetype"],
+            data=data,
+        )
 
         df["created"] = pd.to_datetime(df["created"], utc=True)
         df["age"] = (now - df["created"]).dt.components.days

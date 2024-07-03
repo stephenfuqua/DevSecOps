@@ -6,29 +6,32 @@
 from edfi_tech_metrics.settings import Configuration
 
 from datetime import datetime
-from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 from pathlib import Path
 from os import listdir, path
 
 import pandas as pd
-from plotnine import (
-    aes,
-    ggplot,
-    theme_bw,
-    labs,
-    geom_text,
-    geom_boxplot,
-    coord_flip
-)
-import numpy as np
+from plotnine import aes, ggplot, theme_bw, labs, geom_text, geom_boxplot, coord_flip
 
-def _write_stats_file(conf: Configuration, df: pd.DataFrame, today: str, directory: str) -> None:
+
+def _write_stats_file(
+    conf: Configuration, df: pd.DataFrame, today: str, directory: str
+) -> None:
     stats_df = df[["project", "age"]].groupby(by="project").describe()
     stats_df.reset_index(inplace=True)
 
     stats_df.columns = stats_df.columns.to_flat_index()
-    stats_df.columns = ["project", "count", "mean", "std", "min", "25%", "50%", "75%", "max"]
+    stats_df.columns = [
+        "project",
+        "count",
+        "mean",
+        "std",
+        "min",
+        "25%",
+        "50%",
+        "75%",
+        "max",
+    ]
 
     stats_df["date"] = today
 
@@ -40,9 +43,9 @@ def _write_stats_file(conf: Configuration, df: pd.DataFrame, today: str, directo
 
 
 def write_ticket_age_files(conf: Configuration, df: pd.DataFrame) -> None:
-    today = datetime.today().strftime('%Y-%m-%d')
+    today = datetime.today().strftime("%Y-%m-%d")
     _write_stats_file(conf, df, today, "ticket-age")
-    
+
     filtered = df[(df["issuetype"] != "Test") & (df["fixVersions"].notnull())]
     _write_stats_file(conf, filtered, today, "ticket-age-filtered")
 
@@ -53,46 +56,31 @@ def generate_ticket_age_plots(base_dir: str, projects: List[str]) -> None:
     file_frames = []
     for f in files:
         file_frames.append(pd.read_csv(f))
-    
+
     df = pd.concat(file_frames)
     df.drop(columns=["Unnamed: 0"], inplace=True)
     df = df.round({"mean": 2})
-    
+
     for p in projects:
         filtered = df[df["project"] == p]
-    
+
         (
-            ggplot(
-                filtered,
-                aes(
-                    x="factor(date)",
-                    color="date"
-                )
-            )
+            ggplot(filtered, aes(x="factor(date)", color="date"))
             + geom_boxplot(
-                aes(
-                    ymin="min",
-                    lower="25%",
-                    middle="50%",
-                    upper="75%",
-                    ymax="max"
-                ),
+                aes(ymin="min", lower="25%", middle="50%", upper="75%", ymax="max"),
                 stat="identity",
                 show_legend=False,
-                fatten=3
+                fatten=3,
             )
             + geom_text(
-                aes(
-                    label="mean",
-                    y="mean"
-                ),
+                aes(label="mean", y="mean"),
                 color="black",
                 show_legend=False,
-                nudge_x=.5
-            )        
+                nudge_x=0.5,
+            )
             + coord_flip()
             + labs(
-                    title=f"Unresolved Ticket Age for {p}", y="Age (Days)", x="Query Date"
+                title=f"Unresolved Ticket Age for {p}", y="Age (Days)", x="Query Date"
             )
             + theme_bw()
         ).show()

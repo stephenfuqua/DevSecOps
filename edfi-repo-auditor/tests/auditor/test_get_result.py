@@ -11,7 +11,7 @@ from edfi_repo_auditor.checklist import CHECKLIST, CHECKLIST_DEFAULT_SUCCESS_MES
 
 def describe_when_getting_results() -> None:
     def describe_given_no_rules() -> None:
-        CHECKLIST = {"Has Actions": 5, "Uses Allowed list": 5, "README.md": 3}
+        CHECKLIST = {"Has Actions": 5, "Uses Allowed list": 5}
 
         @pytest.fixture
         def results() -> int:
@@ -25,13 +25,11 @@ def describe_when_getting_results() -> None:
             CHECKLIST.LICENSE_INFORMATION[
                 "description"
             ]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
-            CHECKLIST.README["description"]: CHECKLIST.README["fail"],
         }
 
         RULES = {
             CHECKLIST.HAS_ACTIONS["description"]: 5,
             CHECKLIST.LICENSE_INFORMATION["description"]: 5,
-            CHECKLIST.README["description"]: 3,
         }
 
         @pytest.fixture
@@ -47,13 +45,11 @@ def describe_when_getting_results() -> None:
             CHECKLIST.APPROVED_ACTIONS["description"]: CHECKLIST.APPROVED_ACTIONS[
                 "fail"
             ],
-            CHECKLIST.README["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
         }
 
         RULES = {
             CHECKLIST.HAS_ACTIONS["description"]: 5,
             CHECKLIST.APPROVED_ACTIONS["description"]: 5,
-            CHECKLIST.README["description"]: 3,
         }
 
         @pytest.fixture
@@ -61,4 +57,4 @@ def describe_when_getting_results() -> None:
             return get_result(RESULT, RULES)
 
         def it_adds_the_properties(results: int) -> None:
-            assert results == 8
+            assert results == 5

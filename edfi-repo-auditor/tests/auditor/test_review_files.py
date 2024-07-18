@@ -17,10 +17,8 @@ REPO = "Ed-Fi-ODS"
 def describe_when_reviewing_files() -> None:
     def describe_given_all_files_found() -> None:
         FILES = {
-            CHECKLIST.README["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
-            CHECKLIST.CONTRIBUTORS["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
             CHECKLIST.NOTICES["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
-            CHECKLIST.LICENSE["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
+            CHECKLIST.CODE_OF_CONDUCT["description"]: CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
         }
 
         @pytest.fixture
@@ -34,10 +32,8 @@ def describe_when_reviewing_files() -> None:
 
     def describe_given_files_not_found() -> None:
         FILES = {
-            CHECKLIST.README["description"]: CHECKLIST.README["fail"],
-            CHECKLIST.CONTRIBUTORS["description"]: CHECKLIST.CONTRIBUTORS["fail"],
             CHECKLIST.NOTICES["description"]: CHECKLIST.NOTICES["fail"],
-            CHECKLIST.LICENSE["description"]: CHECKLIST.LICENSE["fail"],
+            CHECKLIST.CODE_OF_CONDUCT["description"]: CHECKLIST.CODE_OF_CONDUCT["fail"],
         }
 
         @pytest.fixture

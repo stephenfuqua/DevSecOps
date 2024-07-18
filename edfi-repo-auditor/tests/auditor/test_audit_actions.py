@@ -15,39 +15,6 @@ REPO = "Ed-Fi-ODS"
 
 
 def describe_when_auditing_actions() -> None:
-    def describe_given_reviewing_codeql() -> None:
-        @pytest.fixture
-        def actions() -> dict:
-            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
-
-        @patch("edfi_repo_auditor.github_client.GitHubClient")
-        def it_returns_failure_message_when_no_codeql(
-            mock_client, actions: dict
-        ) -> None:
-            file_content = """
-                - name: Analyze
-            """
-            mock_client.get_actions.return_value = actions
-            mock_client.get_file_content.return_value = file_content
-            results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.CODEQL["description"]] == CHECKLIST.CODEQL["fail"]
-
-        @patch("edfi_repo_auditor.github_client.GitHubClient")
-        def it_returns_success_message_when_has_codeql(
-            mock_client, actions: dict
-        ) -> None:
-            file_content = """
-                - name: Analyze
-                  uses: github/codeql-action/analyze
-            """
-            mock_client.get_actions.return_value = actions
-            mock_client.get_file_content.return_value = file_content
-            results = audit_actions(mock_client, OWNER, REPO)
-            assert (
-                results[CHECKLIST.CODEQL["description"]]
-                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
-            )
-
     def describe_given_reviewing_allowed_list() -> None:
         @pytest.fixture
         def actions() -> dict:
@@ -156,35 +123,3 @@ def describe_when_auditing_actions() -> None:
                 results[CHECKLIST.UNIT_TESTS["description"]]
                 == CHECKLIST.UNIT_TESTS["fail"]
             )
-
-    def describe_given_reviewing_linter() -> None:
-        @pytest.fixture
-        def actions() -> dict:
-            return {"total_count": 1, "workflows": [{"path": "test-action.yml"}]}
-
-        @patch("edfi_repo_auditor.github_client.GitHubClient")
-        def it_returns_success_message_when_has_linter(
-            mock_client, actions: dict
-        ) -> None:
-            file_content = """
-                - name: Linter
-            """
-
-            mock_client.get_actions.return_value = actions
-            mock_client.get_file_content.return_value = file_content
-            results = audit_actions(mock_client, OWNER, REPO)
-            assert (
-                results[CHECKLIST.LINTER["description"]]
-                == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
-            )
-
-        @patch("edfi_repo_auditor.github_client.GitHubClient")
-        def it_returns_false_when_no_linter(mock_client, actions: dict) -> None:
-            file_content = """
-                - name: Review and correct
-            """
-
-            mock_client.get_actions.return_value = actions
-            mock_client.get_file_content.return_value = file_content
-            results = audit_actions(mock_client, OWNER, REPO)
-            assert results[CHECKLIST.LINTER["description"]] == CHECKLIST.LINTER["fail"]

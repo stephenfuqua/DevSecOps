@@ -105,7 +105,6 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
     )
 
     ut_pattern = re.compile(r"unit.{0,2}test(s)?", flags=re.IGNORECASE)
-    lint_pattern = re.compile(r"lint(er)?(s)?(ing)?", flags=re.IGNORECASE)
     workflow_paths = [
         actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]
     ]
@@ -115,15 +114,6 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
         if not file_content:
             logger.debug("File not found")
             continue
-
-        if (
-            CHECKLIST.CODEQL["description"] not in audit_results
-            or audit_results[CHECKLIST.CODEQL["description"]]
-            == CHECKLIST.CODEQL["fail"]
-        ):
-            audit_results[CHECKLIST.CODEQL["description"]] = get_message(
-                CHECKLIST.CODEQL, "uses: github/codeql-action/analyze" in file_content
-            )
 
         if (
             CHECKLIST.APPROVED_ACTIONS["description"] not in audit_results
@@ -154,15 +144,6 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
                 CHECKLIST.UNIT_TESTS, ut_pattern.search(file_content) is not None
             )
 
-        if (
-            CHECKLIST.LINTER["description"] not in audit_results
-            or audit_results[CHECKLIST.LINTER["description"]]
-            == CHECKLIST.LINTER["fail"]
-        ):
-            audit_results[CHECKLIST.LINTER["description"]] = get_message(
-                CHECKLIST.LINTER, lint_pattern.search(file_content) is not None
-            )
-
     return audit_results
 
 
@@ -189,15 +170,6 @@ def get_repo_information(
         **{
             CHECKLIST.SIGNED_COMMITS["description"]: get_message(
                 CHECKLIST.SIGNED_COMMITS, rules and rules["requiresCommitSignatures"]
-            ),
-            CHECKLIST.CODE_REVIEW["description"]: get_message(
-                CHECKLIST.CODE_REVIEW, rules and rules["requiresApprovingReviews"]
-            ),
-            CHECKLIST.REQUIRES_PR["description"]: get_message(
-                CHECKLIST.REQUIRES_PR, rules and rules["requiresApprovingReviews"]
-            ),
-            CHECKLIST.ADMIN_PR["description"]: get_message(
-                CHECKLIST.ADMIN_PR, rules and rules["isAdminEnforced"] is False
             ),
             CHECKLIST.WIKI["description"]: get_message(
                 CHECKLIST.WIKI, not information["hasWikiEnabled"]
@@ -255,10 +227,8 @@ def review_files(client: GitHubClient, organization: str, repository: str) -> di
     file_audit: dict = {}
 
     files_to_review = [
-        CHECKLIST.README,
-        CHECKLIST.CONTRIBUTORS,
         CHECKLIST.NOTICES,
-        CHECKLIST.LICENSE,
+        CHECKLIST.CODE_OF_CONDUCT,
     ]
 
     for file in files_to_review:

@@ -42,18 +42,6 @@ def describe_when_getting_repo_info() -> None:
                     results[CHECKLIST.SIGNED_COMMITS["description"]]
                     == CHECKLIST.SIGNED_COMMITS["fail"]
                 )
-                assert (
-                    results[CHECKLIST.CODE_REVIEW["description"]]
-                    == CHECKLIST.CODE_REVIEW["fail"]
-                )
-                assert (
-                    results[CHECKLIST.REQUIRES_PR["description"]]
-                    == CHECKLIST.REQUIRES_PR["fail"]
-                )
-                assert (
-                    results[CHECKLIST.ADMIN_PR["description"]]
-                    == CHECKLIST.ADMIN_PR["fail"]
-                )
 
         def describe_given_there_are_protection_rules() -> None:
             RESPONSE = {
@@ -90,18 +78,6 @@ def describe_when_getting_repo_info() -> None:
                     results[CHECKLIST.SIGNED_COMMITS["description"]]
                     == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
                 )
-                assert (
-                    results[CHECKLIST.CODE_REVIEW["description"]]
-                    == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
-                )
-                assert (
-                    results[CHECKLIST.REQUIRES_PR["description"]]
-                    == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
-                )
-                assert (
-                    results[CHECKLIST.ADMIN_PR["description"]]
-                    == CHECKLIST.ADMIN_PR["fail"]
-                )
 
         def describe_given_there_are_protection_rules_for_other_branch() -> None:
             RESPONSE = {
@@ -137,16 +113,4 @@ def describe_when_getting_repo_info() -> None:
                 assert (
                     results[CHECKLIST.SIGNED_COMMITS["description"]]
                     == CHECKLIST.SIGNED_COMMITS["fail"]
-                )
-                assert (
-                    results[CHECKLIST.CODE_REVIEW["description"]]
-                    == CHECKLIST.CODE_REVIEW["fail"]
-                )
-                assert (
-                    results[CHECKLIST.REQUIRES_PR["description"]]
-                    == CHECKLIST.REQUIRES_PR["fail"]
-                )
-                assert (
-                    results[CHECKLIST.ADMIN_PR["description"]]
-                    == CHECKLIST.ADMIN_PR["fail"]
                 )

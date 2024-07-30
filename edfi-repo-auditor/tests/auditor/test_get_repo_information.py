@@ -15,11 +15,11 @@ REPO = "Ed-Fi-ODS"
 
 
 def describe_when_getting_repo_info() -> None:
-    def describe_branch_protection() -> None:
-        def describe_given_there_are_no_protection_rules() -> None:
+    def describe_rulesets() -> None:
+        def describe_given_there_are_no_rulesets() -> None:
             RESPONSE = {
                 "vulnerabilityAlerts": {"nodes": []},
-                "branchProtectionRules": {"nodes": []},
+                "rulesets": {"nodes": []},
                 "hasWikiEnabled": False,
                 "hasIssuesEnabled": False,
                 "hasProjectsEnabled": False,
@@ -43,16 +43,15 @@ def describe_when_getting_repo_info() -> None:
                     == CHECKLIST.SIGNED_COMMITS["fail"]
                 )
 
-        def describe_given_there_are_protection_rules() -> None:
+        def describe_given_there_are_active_rulesets_for_main_branch() -> None:
             RESPONSE = {
                 "vulnerabilityAlerts": {"nodes": []},
-                "branchProtectionRules": {
+                "rulesets": {
                     "nodes": [
                         {
-                            "pattern": "main",
-                            "requiresCommitSignatures": True,
-                            "isAdminEnforced": True,
-                            "requiresApprovingReviews": True,
+                            "enforcement": "ACTIVE",
+                            "conditions": {"refName": {"include": ["main"]}},
+                            "rules": {"nodes": [{"type": "REQUIRED_SIGNATURES"}]},
                         }
                     ]
                 },
@@ -79,16 +78,15 @@ def describe_when_getting_repo_info() -> None:
                     == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
                 )
 
-        def describe_given_there_are_protection_rules_for_other_branch() -> None:
+        def describe_given_there_are_active_rulesets_for_other_branch() -> None:
             RESPONSE = {
                 "vulnerabilityAlerts": {"nodes": []},
-                "branchProtectionRules": {
+                "rulesets": {
                     "nodes": [
                         {
-                            "pattern": "feature",
-                            "requiresCommitSignatures": True,
-                            "isAdminEnforced": True,
-                            "requiresApprovingReviews": True,
+                            "enforcement": "ACTIVE",
+                            "conditions": {"refName": {"include": ["feature"]}},
+                            "rules": {"nodes": [{"type": "REQUIRED_SIGNATURES"}]},
                         }
                     ]
                 },

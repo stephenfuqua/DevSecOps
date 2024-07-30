@@ -16,12 +16,12 @@ REPO = "Ed-Fi-ODS"
 
 def describe_when_getting_repository_information() -> None:
     def describe_given_blank_owner() -> None:
-        def it_raises_an_a_ValueError() -> None:
+        def it_raises_a_ValueError() -> None:
             with pytest.raises(ValueError):
                 GitHubClient(ACCESS_TOKEN).get_repository_information("", "")
 
     def describe_given_blank_repository() -> None:
-        def it_raises_an_a_ValueError() -> None:
+        def it_raises_a_ValueError() -> None:
             with pytest.raises(ValueError):
                 GitHubClient(ACCESS_TOKEN).get_repository_information(OWNER, "")
 
@@ -46,14 +46,51 @@ def describe_when_getting_repository_information() -> None:
           }
         ]
       },
-      "branchProtectionRules": {
+      "rulesets": {
         "nodes": [
-            {
-                "pattern": "main",
-                "requiresCommitSignatures": true,
-                "isAdminEnforced": true,
-                "requiresApprovingReviews": true
-            }
+          {
+            "bypassActors": {
+              "edges": [
+                null
+              ]
+            },
+            "conditions": {
+              "refName": {
+                "include": [
+                  "~DEFAULT_BRANCH",
+                  "refs/heads/patch-*"
+                ]
+              }
+            },
+            "enforcement": "ACTIVE",
+            "name": "main",
+            "rules": {
+              "nodes": [
+                {
+                  "type": "DELETION"
+                },
+                {
+                  "type": "NON_FAST_FORWARD"
+                },
+                {
+                  "type": "CREATION"
+                },
+                {
+                  "type": "REQUIRED_LINEAR_HISTORY"
+                },
+                {
+                  "type": "REQUIRED_SIGNATURES"
+                },
+                {
+                  "type": "PULL_REQUEST"
+                },
+                {
+                  "type": "REQUIRED_STATUS_CHECKS"
+                }
+              ]
+            },
+            "target": "BRANCH"
+          }
         ]
       },
       "hasWikiEnabled": false,
@@ -85,23 +122,19 @@ def describe_when_getting_repository_information() -> None:
                         OWNER, REPO
                     )
 
-            def it_returns_the_branch_protection_rules(results: dict) -> None:
-                assert len(results["branchProtectionRules"]["nodes"]) == 1
+            def it_returns_the_rulesets(results: dict) -> None:
+                assert len(results["rulesets"]["nodes"]) == 1
 
             def it_returns_if_requires_signatures(results: dict) -> None:
-                assert (
-                    results["branchProtectionRules"]["nodes"][0][
-                        "requiresCommitSignatures"
-                    ]
-                    is True
+                assert any(
+                    rule["type"] == "REQUIRED_SIGNATURES"
+                    for rule in results["rulesets"]["nodes"][0]["rules"]["nodes"]
                 )
 
             def it_returns_if_requires_approving_reviews(results: dict) -> None:
-                assert (
-                    results["branchProtectionRules"]["nodes"][0][
-                        "requiresApprovingReviews"
-                    ]
-                    is True
+                assert any(
+                    rule["type"] == "PULL_REQUEST"
+                    for rule in results["rulesets"]["nodes"][0]["rules"]["nodes"]
                 )
 
             def it_returns_license_info(results: dict) -> None:

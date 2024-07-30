@@ -60,18 +60,18 @@ def run_audit(config: Configuration) -> None:
 
         report_json[repo] = {
             "score": score,
-            "result": "OK"
-            if score > auditing_rules["threshold"]
-            else "Action required",
+            "result": (
+                "OK" if score > auditing_rules["threshold"] else "Action required"
+            ),
             "description": results,
         }
 
         report_data.append(
             {
                 "repository": repo,
-                "result": "OK"
-                if score > auditing_rules["threshold"]
-                else "Action required",
+                "result": (
+                    "OK" if score > auditing_rules["threshold"] else "Action required"
+                ),
                 **actions,
                 **file_review,
                 **repo_config,
@@ -105,6 +105,10 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
     )
 
     ut_pattern = re.compile(r"unit.{0,2}test(s)?", flags=re.IGNORECASE)
+    approved_actions_pattern = re.compile(
+        r"uses:\s*ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner\.yml",
+        flags=re.IGNORECASE,
+    )
     workflow_paths = [
         actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]
     ]
@@ -122,8 +126,7 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
         ):
             audit_results[CHECKLIST.APPROVED_ACTIONS["description"]] = get_message(
                 CHECKLIST.APPROVED_ACTIONS,
-                "uses: ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner.yml"
-                in file_content,
+                approved_actions_pattern.search(file_content) is not None,
             )
 
         if (
@@ -132,7 +135,9 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
             == CHECKLIST.TEST_REPORTER["fail"]
         ):
             audit_results[CHECKLIST.TEST_REPORTER["description"]] = get_message(
-                CHECKLIST.TEST_REPORTER, "uses: dorny/test-reporter" in file_content
+                CHECKLIST.TEST_REPORTER,
+                "uses: dorny/test-reporter" in file_content
+                or "uses: EnricoMi/publish-unit-test-result-action" in file_content,
             )
 
         if (
@@ -157,19 +162,32 @@ def get_repo_information(
     )
 
     rulesForMain = [
-        rules
-        for rules in information["branchProtectionRules"]["nodes"]
-        if rules["pattern"] == "main"
+        rule
+        for ruleset in information["rulesets"]["nodes"]
+        if any(
+            "main" in refName for refName in ruleset["conditions"]["refName"]["include"]
+        )
+        for rule in ruleset["rules"]["nodes"]
     ]
-    rules = rulesForMain[0] if rulesForMain else None
+    rules = rulesForMain if rulesForMain else None
 
     logger.debug(f"Repository information: {information}")
     logger.debug(f"Rules for main: {rules}")
 
+    requires_signed_commits = any(
+        rule.get("type") == "REQUIRED_SIGNATURES"
+        for ruleset in information.get("rulesets", {}).get("nodes", [])
+        if any(
+            refName == "main" or refName == "~DEFAULT_BRANCH" or "main" in refName
+            for refName in ruleset["conditions"]["refName"].get("include", [])
+        )
+        for rule in ruleset.get("rules", {}).get("nodes", [])
+    )
+
     return {
         **{
             CHECKLIST.SIGNED_COMMITS["description"]: get_message(
-                CHECKLIST.SIGNED_COMMITS, rules and rules["requiresCommitSignatures"]
+                CHECKLIST.SIGNED_COMMITS, requires_signed_commits
             ),
             CHECKLIST.WIKI["description"]: get_message(
                 CHECKLIST.WIKI, not information["hasWikiEnabled"]

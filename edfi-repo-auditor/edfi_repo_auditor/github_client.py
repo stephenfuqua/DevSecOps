@@ -54,12 +54,31 @@ REPOSITORY_INFORMATION_TEMPLATE = """
         }
       }
     }
-    branchProtectionRules(first: 10) {
+    rulesets(first: 10) {
       nodes {
-        pattern
-        requiresCommitSignatures
-        isAdminEnforced
-        requiresApprovingReviews
+        bypassActors(first: 10) {
+          edges {
+            node {
+              organizationAdmin
+              actor {
+                __typename
+              }
+            }
+          }
+        }
+        conditions {
+          refName {
+            include
+          }
+        }
+        enforcement
+        name
+        rules(first: 20) {
+          nodes {
+            type
+          }
+        }
+        target
       }
     }
     hasWikiEnabled

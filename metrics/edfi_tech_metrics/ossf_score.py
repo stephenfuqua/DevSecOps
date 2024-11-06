@@ -9,11 +9,12 @@ import os
 import pandas as pd
 from datetime import datetime
 
+CA_FILE = "c:\msdfrootca.cer"
 
 # Function to fetch OSSF score
 def get_ossf_score(organization, repository):
     url = f"https://api.securityscorecards.dev/projects/github.com/{organization}/{repository}"
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     if response.status_code == 200:
         data = response.json()
         return data["score"]
@@ -37,7 +38,7 @@ def report_ossf_scores(repositories):
 # Function to fetch repositories for an organization
 def fetch_repositories(organization):
     url = f"https://api.github.com/orgs/{organization}/repos?per_page=100"
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     if response.status_code == 200:
         data = response.json()
         repositories = [repo["full_name"] for repo in data]

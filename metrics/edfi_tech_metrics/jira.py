@@ -31,7 +31,7 @@ class JiraBrowser:
         self.conf = conf
 
         conf.info(f"Connecting to {conf.jira_base_url}")
-        self.jira = JIRA(conf.jira_base_url, token_auth=conf.jira_token)
+        self.jira = JIRA(conf.jira_base_url, basic_auth=(conf.jira_user_name, conf.jira_token))
 
     def get_page_of_issues(self, project_key: str, begin: str) -> IssuePage:
         jql = f"project={project_key} {begin} AND resolution = Unresolved order by created asc"

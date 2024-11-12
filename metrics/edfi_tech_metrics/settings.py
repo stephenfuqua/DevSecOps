@@ -24,6 +24,7 @@ class Configuration:
     Container for holding arguments parsed from command line or environment.
     """
 
+    jira_user_name: str
     jira_token: str
     jira_base_url: str
     log_level: str
@@ -53,6 +54,7 @@ def load_from_env() -> Configuration:
     load_dotenv()
 
     c = Configuration(
+        getenv("JIRA_USER_NAME", ""),
         getenv("JIRA_TOKEN", ""),
         getenv("JIRA_BASE_URL", ""),
         getenv("LOG_LEVEL", DEFAULT_LOG_LEVEL),
@@ -68,6 +70,15 @@ def load_configuration(args_in: List[str]) -> Configuration:
 
     parser = ArgParser()
     parser.add(  # type: ignore
+        "-u",
+        "--user-name",
+        required=True,
+        help="Jira user name",
+        type=str,
+        env_var="JIRA_USER_NAME",
+    )
+
+    parser.add(  # type: ignore
         "-t",
         "--token",
         required=True,
@@ -77,7 +88,7 @@ def load_configuration(args_in: List[str]) -> Configuration:
     )
 
     parser.add(  # type: ignore
-        "-u",
+        "-b",
         "--base-url",
         required=True,
         help="Jira base URL",

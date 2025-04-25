@@ -27,13 +27,13 @@ jobs:
         LOCK_FILE: src/edfi-paging-test/poetry.lock
     steps:
       - name: Checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b  # v3.0.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Install Poetry
         run: pipx install poetry
 
       - name: Install Python 3.9
-        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6 # v3.1.2
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: "3.9"
           cache: "poetry"

@@ -17,16 +17,21 @@ poetry run python edfi_repo_auditor -p {TOKEN} -s True -o {ORGANIZATION} -r {REP
 ```
 
 Parameters:
-| Parameter          | Description          | Required?                                                                                                                   |
-| ------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| --access_token  -p | GitHub Access Token  | To call private repos and get branch protection info                                                                        |
-| --organization -o  | Organization Name    | Yes                                                                                                                         |
-| --repositories -r  | Repositories         | No. If not specified, will get all repos for the organization. Can specify multiple repositories separated by a blank space |
-| --log_level -r     | Log level            | No. Default: INFO. Can be: ERROR, WARNING, INFO, DEBUG                                                                      |
-| --save_results -s  | Save results to file | No. Default: console. If specified, will save the
-results to a file |
-| --file_name -f  | Filename | No. Default: `audit-results`. If specified,
-will save the results with given name. |
+
+| Parameter          | Description          | Required?                                                                          |
+| ------------------ | -------------------- | ---------------------------------------------------------------------------------- |
+| --access_token  -p | GitHub Access Token  | To call private repos and get branch protection info                               |
+| --organization -o  | Organization Name    | Yes                                                                                |
+| --repositories -r  | Repositories         | No. If not specified, will get all repos for the organization.                     |
+| --log_level -r     | Log level            | No. Default: INFO. Can be: ERROR, WARNING, INFO, DEBUG                             |
+| --save_results -s  | Save results to file | No. Default: console. If specified, will save the  results to a file               |
+| --file_name -f     | Filename             | No. Default: `audit-results`. If specified, will save the results with given name. |
+
+Alternatively, you can copy `.env.example` to `.env`, add your GitHub API token,
+and skip all of the arguments: `poetry run python edfi_repo_auditor`.
+
+Look in the `reports` directory for the output file and an HTML file summarizing
+the scoring results.
 
 ## Test
 

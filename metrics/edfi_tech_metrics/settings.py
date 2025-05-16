@@ -119,7 +119,14 @@ def load_configuration(args_in: List[str]) -> Configuration:
 
     parsed = parser.parse_args(args_in)
 
-    c = Configuration(parsed.token, parsed.base_url, parsed.log_level, parsed.page_size)
+    c = Configuration(
+        parsed.jira_user_name,
+        parsed.token,
+        parsed.base_url,
+        parsed.log_level,
+        parsed.page_size,
+    )
+
     configure_logging(c)
 
     return c

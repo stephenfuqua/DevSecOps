@@ -11,6 +11,7 @@ from datetime import datetime
 
 CA_FILE = "c:\msdfrootca.cer"
 
+
 # Function to fetch OSSF score
 def get_ossf_score(organization, repository):
     url = f"https://api.securityscorecards.dev/projects/github.com/{organization}/{repository}"
@@ -48,11 +49,15 @@ def fetch_repositories(organization):
 
 
 def compare_with_previous_scores(current_scores):
-    current_df = pd.DataFrame(list(current_scores.items()), columns=["Repository", "Current Score"])
+    current_df = pd.DataFrame(
+        list(current_scores.items()), columns=["Repository", "Current Score"]
+    )
 
     data_dir = "./data/ossf-scores/"
     today = datetime.now().strftime("%Y-%m-%d")
-    csv_files = [f for f in os.listdir(data_dir) if f.endswith(".csv") and f != f"{today}.csv"]
+    csv_files = [
+        f for f in os.listdir(data_dir) if f.endswith(".csv") and f != f"{today}.csv"
+    ]
 
     if not csv_files:
         print("No previous scores found for comparison.")
@@ -61,16 +66,42 @@ def compare_with_previous_scores(current_scores):
     previous_file = max(csv_files)
     previous_df = pd.read_csv(os.path.join(data_dir, previous_file))
 
-    merged_df = pd.merge(current_df, previous_df, on="Repository", how="outer", suffixes=("", "_Previous"))
+    merged_df = pd.merge(
+        current_df,
+        previous_df,
+        on="Repository",
+        how="outer",
+        suffixes=("", "_Previous"),
+    )
 
     merged_df["Score Difference"] = merged_df["Current Score"] - merged_df["Score"]
-    merged_df["Percentage Change"] = (merged_df["Score Difference"] / merged_df["Score"]) * 100
+    merged_df["Percentage Change"] = (
+        merged_df["Score Difference"] / merged_df["Score"]
+    ) * 100
 
-    merged_df = merged_df[["Repository", "Current Score", "Score", "Score Difference", "Percentage Change"]]
-    merged_df.columns = ["Repository", "Current Score", "Previous Score", "Score Difference", "Percentage Change"]
+    merged_df = merged_df[
+        [
+            "Repository",
+            "Current Score",
+            "Score",
+            "Score Difference",
+            "Percentage Change",
+        ]
+    ]
+    merged_df.columns = [
+        "Repository",
+        "Current Score",
+        "Previous Score",
+        "Score Difference",
+        "Percentage Change",
+    ]
 
     # Identify repositories with significant changes
-    improved_repos = merged_df[merged_df["Percentage Change"] >= 10]["Repository"].tolist()
-    worsened_repos = merged_df[merged_df["Percentage Change"] <= -10]["Repository"].tolist()
+    improved_repos = merged_df[merged_df["Percentage Change"] >= 10][
+        "Repository"
+    ].tolist()
+    worsened_repos = merged_df[merged_df["Percentage Change"] <= -10][
+        "Repository"
+    ].tolist()
 
     return merged_df, improved_repos, worsened_repos

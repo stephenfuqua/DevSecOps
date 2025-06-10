@@ -14,7 +14,7 @@ configargparse = "^1.7"
 pandas = "^2.2.1"
 tzlocal = "^5.2"
 termcolor = "^2.4.0"
-plotnine = "^0.13.1"
+plotnine = "^0.14.5"
 ipywidgets = "^8.1.2"
 
 

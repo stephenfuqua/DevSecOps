@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Ed-Fi Community Hub
-    url: https://success.ed-fi.org
-    about: Use the Community Hub for all support topics. Support questions opened directly in this repository will be closed without action.
+  - name: 🏠 Ed-Fi Community Hub
+    url: https://community.ed-fi.org
+    about: For technical support, questions, and community discussions
+  - name: 📚 Ed-Fi Documentation
+    url: https://docs.ed-fi.org
+    about: Official Ed-Fi technical documentation and guides

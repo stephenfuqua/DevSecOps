@@ -10,9 +10,27 @@ updates:
     target-branch: main
     schedule:
       interval: monthly
+    groups:
+      minor-patches:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
 
   - package-ecosystem: pip
     directory: metrics/
     target-branch: main
     schedule:
       interval: monthly
+    groups:
+      minor-patches:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+

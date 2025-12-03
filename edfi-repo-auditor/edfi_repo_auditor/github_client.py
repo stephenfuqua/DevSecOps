@@ -232,3 +232,171 @@ class GitHubClient:
             if file_result
             else None
         )
+
+    def get_pull_requests(
+        self, owner: str, repository: str, state: str = "closed", per_page: int = 100
+    ) -> List[dict]:
+        """
+        Get pull requests with full pagination.
+
+        Args:
+            owner: Repository owner
+            repository: Repository name
+            state: PR state filter ('open', 'closed', or 'all')
+            per_page: Results per page (max 100)
+
+        Returns:
+            List of PR records with number, created_at, closed_at, merged_at,
+            user, additions, deletions, changed_files
+        """
+        if len(owner.strip()) == 0:
+            raise ValueError("owner cannot be blank")
+        if len(repository.strip()) == 0:
+            raise ValueError("repository cannot be blank")
+
+        all_prs: List[dict] = []
+        page = 1
+
+        while True:
+            logger.info(
+                f"Getting pull requests for {owner}/{repository}, page {page}"
+            )
+            url = (
+                f"{API_URL}/repos/{owner}/{repository}/pulls"
+                f"?state={state}&per_page={per_page}&page={page}"
+            )
+
+            prs = self._execute_api_call(
+                f"Getting PRs for {owner}/{repository}",
+                "GET",
+                url,
+            )
+
+            if not prs:
+                break
+
+            for pr in prs:
+                pr_record = {
+                    "number": pr["number"],
+                    "created_at": pr.get("created_at"),
+                    "closed_at": pr.get("closed_at"),
+                    "merged_at": pr.get("merged_at"),
+                    "user": pr.get("user", {}).get("login"),
+                    "additions": pr.get("additions"),
+                    "deletions": pr.get("deletions"),
+                    "changed_files": pr.get("changed_files"),
+                }
+                all_prs.append(pr_record)
+
+            if len(prs) < per_page:
+                break
+
+            page += 1
+
+        return all_prs
+
+    def get_pull_request_detail(
+        self, owner: str, repository: str, pr_number: int
+    ) -> dict:
+        """
+        Get detailed information for a specific pull request.
+
+        Args:
+            owner: Repository owner
+            repository: Repository name
+            pr_number: Pull request number
+
+        Returns:
+            PR record with detailed fields including additions, deletions, changed_files
+        """
+        if len(owner.strip()) == 0:
+            raise ValueError("owner cannot be blank")
+        if len(repository.strip()) == 0:
+            raise ValueError("repository cannot be blank")
+
+        url = f"{API_URL}/repos/{owner}/{repository}/pulls/{pr_number}"
+        pr = self._execute_api_call(
+            f"Getting PR #{pr_number} details for {owner}/{repository}",
+            "GET",
+            url,
+        )
+
+        return {
+            "number": pr["number"],
+            "created_at": pr.get("created_at"),
+            "closed_at": pr.get("closed_at"),
+            "merged_at": pr.get("merged_at"),
+            "user": pr.get("user", {}).get("login"),
+            "additions": pr.get("additions"),
+            "deletions": pr.get("deletions"),
+            "changed_files": pr.get("changed_files"),
+        }
+
+    def get_pull_request_reviews(
+        self, owner: str, repository: str, pr_number: int
+    ) -> List[dict]:
+        """
+        Get reviews for a specific pull request.
+
+        Args:
+            owner: Repository owner
+            repository: Repository name
+            pr_number: Pull request number
+
+        Returns:
+            List of review records with user, state, submitted_at
+        """
+        if len(owner.strip()) == 0:
+            raise ValueError("owner cannot be blank")
+        if len(repository.strip()) == 0:
+            raise ValueError("repository cannot be blank")
+
+        url = f"{API_URL}/repos/{owner}/{repository}/pulls/{pr_number}/reviews"
+        reviews = self._execute_api_call(
+            f"Getting reviews for PR #{pr_number} in {owner}/{repository}",
+            "GET",
+            url,
+        )
+
+        return [
+            {
+                "user": review.get("user", {}).get("login"),
+                "state": review.get("state"),
+                "submitted_at": review.get("submitted_at"),
+            }
+            for review in reviews
+        ]
+
+    def get_pull_request_comments(
+        self, owner: str, repository: str, pr_number: int
+    ) -> List[dict]:
+        """
+        Get comments for a specific pull request (issue comments).
+
+        Args:
+            owner: Repository owner
+            repository: Repository name
+            pr_number: Pull request number
+
+        Returns:
+            List of comment records with user, created_at
+        """
+        if len(owner.strip()) == 0:
+            raise ValueError("owner cannot be blank")
+        if len(repository.strip()) == 0:
+            raise ValueError("repository cannot be blank")
+
+        url = f"{API_URL}/repos/{owner}/{repository}/issues/{pr_number}/comments"
+        comments = self._execute_api_call(
+            f"Getting comments for PR #{pr_number} in {owner}/{repository}",
+            "GET",
+            url,
+        )
+
+        return [
+            {
+                "user": comment.get("user", {}).get("login"),
+                "created_at": comment.get("created_at"),
+            }
+            for comment in comments
+        ]

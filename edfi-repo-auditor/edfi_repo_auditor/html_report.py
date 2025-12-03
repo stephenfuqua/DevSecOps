@@ -41,6 +41,16 @@ def convert(file_name: str, file_contents: str, lines: List[str]) -> List[str]:
                 lines.append(f"<li>{key}: {value}")
         lines.append("</ul>")
 
+        # Add Metrics section if available
+        if "metrics" in repo_data and repo_data["metrics"]:
+            lines.append("<p>Metrics:</p>")
+            lines.append("<ul>")
+            metrics = repo_data["metrics"]
+            for metric_key, metric_value in metrics.items():
+                if metric_value is not None:
+                    lines.append(f"<li>{metric_key}: {metric_value}")
+            lines.append("</ul>")
+
     return lines
 
 

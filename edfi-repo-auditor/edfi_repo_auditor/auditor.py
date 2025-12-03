@@ -23,6 +23,7 @@ from edfi_repo_auditor.checklist import (
 from edfi_repo_auditor.config import Configuration
 from edfi_repo_auditor.github_client import GitHubClient
 from edfi_repo_auditor.html_report import convert_to_html
+from edfi_repo_auditor.pr_metrics import get_basic_pr_metrics
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -53,6 +54,10 @@ def run_audit(config: Configuration) -> None:
         file_review = review_files(client, config.organization, repo)
         logger.debug(f"Files: {file_review}")
 
+        # Get PR metrics
+        pr_metrics = get_basic_pr_metrics(client, config.organization, repo)
+        logger.debug(f"PR Metrics: {pr_metrics}")
+
         results = {**actions, **file_review, **repo_config}
         auditing_rules = get_file()
         score = get_result(results, auditing_rules["rules"])
@@ -64,6 +69,7 @@ def run_audit(config: Configuration) -> None:
                 "OK" if score > auditing_rules["threshold"] else "Action required"
             ),
             "description": results,
+            "metrics": pr_metrics,
         }
 
         report_data.append(
@@ -75,6 +81,7 @@ def run_audit(config: Configuration) -> None:
                 **actions,
                 **file_review,
                 **repo_config,
+                **pr_metrics,
             }
         )
 

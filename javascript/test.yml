@@ -8,6 +8,8 @@ on:
   # Allow running on any branch through button-click
   workflow_dispatch:
 
+permissions: read-all
+
 jobs:
   test:
     name: Full testing process

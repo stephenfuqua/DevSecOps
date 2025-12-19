@@ -18,6 +18,8 @@ on:
     paths:
       - 'src/**'
 
+permissions: read-all
+
 env:
   DB_PASS: temporaryDbP@ssw0rd!
 

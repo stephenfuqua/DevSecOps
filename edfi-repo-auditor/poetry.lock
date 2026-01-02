@@ -853,18 +853,18 @@ dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests
 
 [[package]]
 name = "pytest-describe"
-version = "2.0.1"
+version = "3.1.0"
 description = "Describe-style plugin for pytest"
 optional = false
-python-versions = "*"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "pytest-describe-2.0.1.tar.gz", hash = "sha256:e5cbaa31169f0060348ad5ca0191027e5f1f41f3f27fdeef208365e09c55eb9a"},
-    {file = "pytest_describe-2.0.1-py3-none-any.whl", hash = "sha256:ea347838bdf774b498ee7cb4a0b802a40be89e667a399fb63d860e3223bf4183"},
+    {file = "pytest_describe-3.1.0-py3-none-any.whl", hash = "sha256:9835cc6732c1cc92b0ae230f0a8a6084924129669cb370fe9d4422445cae3cc1"},
+    {file = "pytest_describe-3.1.0.tar.gz", hash = "sha256:096017a0efd7beab7114c8fb7ced3a0cfd3a6d8a37e89578ea3d7b190bec6871"},
 ]
 
 [package.dependencies]
-pytest = ">=4.0.0"
+pytest = ">=6,<10"
 
 [[package]]
 name = "pytest-mock"
@@ -1096,4 +1096,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e8d4e1f18e423acbedf418bde85d2c9d6473a68610cbf4059e9fe780cf8b4c47"
+content-hash = "9fa94d1807cdcc37ed9051e415444e59740f874832880b80ad8befaeee17303f"

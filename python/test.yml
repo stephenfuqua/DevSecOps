@@ -34,16 +34,16 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Install Python 3.9
+      - name: Install Python 3.12
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
-          python-version: "3.9"
+          python-version: "3.12"
           cache: "poetry"
 
       - name: Run CI Test Task
         run: |
           # Next line keeps poetry from trying to use the runner's default Python version
-          pushd ${{ env.SRC_DIR }} && poetry env use "3.9" && popd
+          pushd ${{ env.SRC_DIR }} && poetry env use "3.12" && popd
           python ./eng/build.py ci:test ${{ env.PACKAGE_NAME }}
 
       - name: Test Report

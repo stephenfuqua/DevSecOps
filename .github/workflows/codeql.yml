@@ -42,14 +42,14 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Install Python 3.9
+      - name: Install Python 3.12
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
-          python-version: "3.9.x"
+          python-version: "3.12.x"
           cache: "poetry"
 
       - name: Install dependencies
-        run: poetry env use "3.9" && poetry install
+        run: poetry env use "3.12" && poetry install
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@48ab28a6f5dbc2a99bf1e0131198dd8f1df78169 # v3.28.0

@@ -90,7 +90,7 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
         flags=re.IGNORECASE,
     )
     workflow_paths = [
-        actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]
+        workflow["path"] for workflow in actions["workflows"]
     ]
 
     for file_path in workflow_paths:
@@ -149,7 +149,7 @@ def get_repo_information(
                 CHECKLIST.WIKI, not information["hasWikiEnabled"]
             ),
             CHECKLIST.ISSUES["description"]: get_message(
-                CHECKLIST.DISCUSSIONS, not information["hasIssuesEnabled"]
+                CHECKLIST.ISSUES, not information["hasIssuesEnabled"]
             ),
             CHECKLIST.PROJECTS["description"]: get_message(
                 CHECKLIST.PROJECTS, not information["hasProjectsEnabled"]
@@ -176,12 +176,12 @@ def audit_alerts(
 ) -> dict:
     """Audit dependabot alerts."""
     vulnerabilities = [
-        alerts
-        for alerts in alerts
+        alert
+        for alert in alerts
         if (
-            alerts["createdAt"]
+            alert["createdAt"]
             < (datetime.now() - timedelta(ALERTS_WEEKS_SINCE_CREATED * 7)).isoformat()
-            and alerts["securityVulnerability"]["advisory"]["severity"]
+            and alert["securityVulnerability"]["advisory"]["severity"]
             in ALERTS_INCLUDED_SEVERITIES
         )
     ]

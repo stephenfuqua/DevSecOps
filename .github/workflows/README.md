@@ -32,15 +32,14 @@ jobs:
       contents: read
       pull-requests: read
       security-events: read
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
 ```
 
 **Inputs:**
 - `repository` (optional): Name of the repository to audit. Defaults to the current repository.
 
 **Secrets:**
-- `GITHUB_TOKEN` (required): GitHub token with repo read permissions.
+- Uses the built-in `GITHUB_TOKEN` automatically (no secret configuration needed).
 
 ### `test-repository-audit.yml` - Test Workflow
 

@@ -14,10 +14,6 @@ on:
           (defaults to current repository)
         required: false
         type: string
-    secrets:
-      GITHUB_TOKEN:
-        description: 'GitHub token with repo read permissions'
-        required: true
 
 permissions:
   actions: read

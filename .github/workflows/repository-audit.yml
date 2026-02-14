@@ -69,7 +69,7 @@ jobs:
           AUDIT_ORGANIZATION: ${{ steps.repo-info.outputs.organization }}
           AUDIT_REPOSITORIES: ${{ steps.repo-info.outputs.repository }}
         run: |
-          poetry run python -m edfi_repo_auditor.__main_github_actions__
+          poetry run python edfi_repo_auditor/__main_github_actions__.py
 
       - name: Check audit result
         if: always()

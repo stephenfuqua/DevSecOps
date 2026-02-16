@@ -19,7 +19,7 @@ on:
         type: string
         description: Name of repository to analyze
         default: ''
-        required: false
+        required: true
 
 env:
   PERSONAL_ACCESS_TOKEN: ${{ secrets.EDFI_BUILD_AGENT_PAT }}
@@ -28,7 +28,7 @@ permissions:
   actions: read
   contents: read
   pull-requests: read
-  security-events: write
+  security-events: read
 
 jobs:
   audit:
@@ -55,13 +55,19 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Audit
-        if: github.event.inputs.repository != ''
-        run: poetry run python edfi_repo_auditor -p ${{ env.PERSONAL_ACCESS_TOKEN }} -s -o ${{ github.event.inputs.organization }} -r ${{ github.event.inputs.repository }}
+      - name: Determine repository details
+        id: repo-info
+        run: |
+          echo "organization=${{ github.event.inputs.organization }}" >> $GITHUB_OUTPUT
+          echo "repository=${{ github.event.inputs.repository }}" >> $GITHUB_OUTPUT
+          echo "Auditing repository: ${{ github.event.inputs.organization }}/${{ github.event.inputs.repository }}"
 
-      - name: Audit
-        if: github.event.inputs.repository == ''
-        run: poetry run python edfi_repo_auditor -p ${{ env.PERSONAL_ACCESS_TOKEN }} -s -o ${{ github.event.inputs.organization }}
+      - name: Run the auditor
+        run: |
+          poetry run python edfi_repo_auditor/__main_github_actions__.py \
+            -p ${{ env.PERSONAL_ACCESS_TOKEN }} \
+            -s -o ${{ github.event.inputs.organization }} \
+            -r ${{ github.event.inputs.repository }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0

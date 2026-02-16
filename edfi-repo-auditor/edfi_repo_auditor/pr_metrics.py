@@ -284,9 +284,7 @@ def audit_pr_review_cycle(
                             approval_times.append(parsed)
                 first_approval_time = min(approval_times) if approval_times else None
                 if created_at and first_approval_time:
-                    hours = (
-                        first_approval_time - created_at
-                    ).total_seconds() / 3600
+                    hours = (first_approval_time - created_at).total_seconds() / 3600
                     times_to_first_approval.append(hours)
         except RuntimeError as e:
             logger.warning(f"Failed to fetch reviews for PR #{pr['number']}: {e}")
@@ -411,20 +409,24 @@ def audit_time_to_first_response(
                 if review.get("user") != pr_author:
                     review_time = _parse_datetime(review.get("submitted_at"))
                     if review_time:
-                        if first_response_time is None or review_time < first_response_time:
+                        if (
+                            first_response_time is None
+                            or review_time < first_response_time
+                        ):
                             first_response_time = review_time
         except RuntimeError as e:
             logger.warning(f"Failed to fetch reviews for PR #{pr['number']}: {e}")
 
         try:
-            comments = client.get_pull_request_comments(
-                owner, repository, pr["number"]
-            )
+            comments = client.get_pull_request_comments(owner, repository, pr["number"])
             for comment in comments:
                 if comment.get("user") != pr_author:
                     comment_time = _parse_datetime(comment.get("created_at"))
                     if comment_time:
-                        if first_response_time is None or comment_time < first_response_time:
+                        if (
+                            first_response_time is None
+                            or comment_time < first_response_time
+                        ):
                             first_response_time = comment_time
         except RuntimeError as e:
             logger.warning(f"Failed to fetch comments for PR #{pr['number']}: {e}")

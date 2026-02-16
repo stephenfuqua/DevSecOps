@@ -255,9 +255,7 @@ class GitHubClient:
         page = 1
 
         while True:
-            logger.info(
-                f"Getting pull requests for {owner}/{repository}, page {page}"
-            )
+            logger.info(f"Getting pull requests for {owner}/{repository}, page {page}")
             url = (
                 f"{API_URL}/repos/{owner}/{repository}/pulls"
                 f"?state={state}&per_page={per_page}&page={page}"

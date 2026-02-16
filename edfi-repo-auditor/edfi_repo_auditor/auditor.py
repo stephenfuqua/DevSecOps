@@ -11,7 +11,6 @@ results to GitHub Actions job summary instead of generating HTML files.
 import logging
 import os
 import re
-import sys
 from typing import List
 from datetime import datetime, timedelta
 
@@ -71,7 +70,6 @@ def run_audit(config: Configuration) -> None:
 
         output_to_github_actions(repository, results)
 
-
         report_data.append(
             {
                 "repository": repository,
@@ -85,10 +83,7 @@ def run_audit(config: Configuration) -> None:
     if config.save_results is True:
         save_to_csv(pd.DataFrame(report_data), config.file_name)
 
-
-    logger.info(
-        f"Audit complete."
-    )
+    logger.info("Audit complete.")
 
 
 def audit_actions(client: GitHubClient, organization: str, repository: str) -> dict:
@@ -108,9 +103,7 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
         r"uses:\s*ed-fi-alliance-oss/ed-fi-actions/.github/workflows/repository-scanner\.yml",
         flags=re.IGNORECASE,
     )
-    workflow_paths = [
-        workflow["path"] for workflow in actions["workflows"]
-    ]
+    workflow_paths = [workflow["path"] for workflow in actions["workflows"]]
 
     for file_path in workflow_paths:
         file_content = client.get_file_content(organization, repository, file_path)
@@ -251,9 +244,7 @@ def calculate_score(results: dict, rules: dict) -> int:
     return score
 
 
-def output_to_github_actions(
-    repository: str, results: dict
-) -> None:
+def output_to_github_actions(repository: str, results: dict) -> None:
     """
     Output audit results to GitHub Actions job summary.
 

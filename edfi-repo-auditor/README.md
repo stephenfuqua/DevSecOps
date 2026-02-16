@@ -33,9 +33,14 @@ and skip all of the arguments: `poetry run python edfi_repo_auditor`.
 Look in the `reports` directory for the output file and an HTML file summarizing
 the scoring results.
 
-## Test
+## Dev Tools
 
-Run `poetry run pytest` to execute unit tests
+| Command              | Purpose     |
+| -------------------- | ----------- |
+| `poetry run pytest`  | unit tests  |
+| `poetry run mypy .`  | type checks |
+| `poetry run black .` | re-format   |
+| `poetry run flake8`  | linter      |
 
 ## Detailed Guidance
 

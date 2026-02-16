@@ -84,9 +84,6 @@ REPOSITORY_INFORMATION_TEMPLATE = """
     hasWikiEnabled
     hasIssuesEnabled
     hasProjectsEnabled
-    discussions {
-      totalCount
-    }
     deleteBranchOnMerge
     squashMergeAllowed
     licenseInfo {

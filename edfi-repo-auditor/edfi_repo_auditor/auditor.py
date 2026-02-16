@@ -3,15 +3,18 @@
 # The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
 # See the LICENSE and NOTICES files in the project root for more information.
 
-import json
+"""
+GitHub Actions auditor that runs on a single repository and outputs
+results to GitHub Actions job summary instead of generating HTML files.
+"""
+
 import logging
 import os
 import re
-import time
+import sys
 from typing import List
 from datetime import datetime, timedelta
 
-from pprint import pformat
 import pandas as pd
 
 from edfi_repo_auditor.checklist import (
@@ -19,10 +22,8 @@ from edfi_repo_auditor.checklist import (
     CHECKLIST_DEFAULT_SUCCESS_MESSAGE,
     get_message,
 )
-
 from edfi_repo_auditor.config import Configuration
 from edfi_repo_auditor.github_client import GitHubClient
-from edfi_repo_auditor.html_report import convert_to_html
 from edfi_repo_auditor.pr_metrics import get_basic_pr_metrics
 
 
@@ -34,8 +35,15 @@ ALERTS_WEEKS_SINCE_CREATED = 3
 
 
 def run_audit(config: Configuration) -> None:
-    start = time.time()
+    """
+    Run audit on a single repository and output results to GitHub Actions.
+
+    Args:
+        config: Configuration with repository details
+    """
     client = GitHubClient(config.personal_access_token)
+
+    organization = config.organization
 
     repositories = (
         config.repositories
@@ -43,41 +51,30 @@ def run_audit(config: Configuration) -> None:
         else client.get_repositories(config.organization)
     )
 
-    report_json: dict = {}
     report_data = []
-    for repo in repositories:
-        logger.info(f"Scanning repository {repo}")
-        repo_config = get_repo_information(client, config.organization, repo)
-        logger.debug(f"Repo configuration: {repo_config}")
-        actions = audit_actions(client, config.organization, repo)
-        logger.debug(f"Actions {actions}")
-        file_review = review_files(client, config.organization, repo)
-        logger.debug(f"Files: {file_review}")
 
-        # Get PR metrics
-        pr_metrics = get_basic_pr_metrics(client, config.organization, repo)
+    for repository in repositories:
+
+        logger.info(f"Auditing repository {organization}/{repository}")
+
+        # Perform all audits
+        repo_config = get_repo_information(client, organization, repository)
+        logger.debug(f"Repo configuration: {repo_config}")
+        actions = audit_actions(client, organization, repository)
+        logger.debug(f"Actions {actions}")
+        file_review = review_files(client, organization, repository)
+        logger.debug(f"Files: {file_review}")
+        pr_metrics = get_basic_pr_metrics(client, config.organization, repository)
         logger.debug(f"PR Metrics: {pr_metrics}")
 
-        results = {**actions, **file_review, **repo_config}
-        auditing_rules = get_file()
-        score = get_result(results, auditing_rules["rules"])
-        logger.debug(f"Rules to follow: {auditing_rules}")
+        results = {**actions, **file_review, **repo_config, **pr_metrics}
 
-        report_json[repo] = {
-            "score": score,
-            "result": (
-                "OK" if score > auditing_rules["threshold"] else "Action required"
-            ),
-            "description": results,
-            "metrics": pr_metrics,
-        }
+        output_to_github_actions(repository, results)
+
 
         report_data.append(
             {
-                "repository": repo,
-                "result": (
-                    "OK" if score > auditing_rules["threshold"] else "Action required"
-                ),
+                "repository": repository,
                 **actions,
                 **file_review,
                 **repo_config,
@@ -85,22 +82,17 @@ def run_audit(config: Configuration) -> None:
             }
         )
 
-    df = pd.DataFrame(report_data)
-
     if config.save_results is True:
-        save_to_json(report_json, config.file_name)
-        save_to_csv(df, config.file_name)
-        convert_to_html()
+        save_to_csv(pd.DataFrame(report_data), config.file_name)
 
-    else:
-        logger.info(pformat(report_json))
 
     logger.info(
-        f"Finished auditing repositories for {config.organization} in {'{:.2f}'.format(time.time() - start)} seconds"
+        f"Audit complete."
     )
 
 
 def audit_actions(client: GitHubClient, organization: str, repository: str) -> dict:
+    """Audit GitHub Actions configuration."""
     audit_results: dict = {}
 
     actions = client.get_actions(organization, repository)
@@ -117,7 +109,7 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
         flags=re.IGNORECASE,
     )
     workflow_paths = [
-        actions["workflows"]["path"] for actions["workflows"] in actions["workflows"]
+        workflow["path"] for workflow in actions["workflows"]
     ]
 
     for file_path in workflow_paths:
@@ -162,51 +154,23 @@ def audit_actions(client: GitHubClient, organization: str, repository: str) -> d
 def get_repo_information(
     client: GitHubClient, organization: str, repository: str
 ) -> dict:
+    """Get repository configuration information."""
     information = client.get_repository_information(organization, repository)
 
     dependabot_results = audit_alerts(
         client, organization, repository, information["vulnerabilityAlerts"]["nodes"]
     )
 
-    rulesForMain = [
-        rule
-        for ruleset in information["rulesets"]["nodes"]
-        if any(
-            "main" in refName for refName in ruleset["conditions"]["refName"]["include"]
-        )
-        for rule in ruleset["rules"]["nodes"]
-    ]
-    rules = rulesForMain if rulesForMain else None
-
-    logger.debug(f"Repository information: {information}")
-    logger.debug(f"Rules for main: {rules}")
-
-    requires_signed_commits = any(
-        rule.get("type") == "REQUIRED_SIGNATURES"
-        for ruleset in information.get("rulesets", {}).get("nodes", [])
-        if any(
-            refName == "main" or refName == "~DEFAULT_BRANCH" or "main" in refName
-            for refName in ruleset["conditions"]["refName"].get("include", [])
-        )
-        for rule in ruleset.get("rules", {}).get("nodes", [])
-    )
-
     return {
         **{
-            CHECKLIST.SIGNED_COMMITS["description"]: get_message(
-                CHECKLIST.SIGNED_COMMITS, requires_signed_commits
-            ),
             CHECKLIST.WIKI["description"]: get_message(
                 CHECKLIST.WIKI, not information["hasWikiEnabled"]
             ),
             CHECKLIST.ISSUES["description"]: get_message(
-                CHECKLIST.DISCUSSIONS, not information["hasIssuesEnabled"]
+                CHECKLIST.ISSUES, information["hasIssuesEnabled"]
             ),
             CHECKLIST.PROJECTS["description"]: get_message(
                 CHECKLIST.PROJECTS, not information["hasProjectsEnabled"]
-            ),
-            CHECKLIST.DISCUSSIONS["description"]: get_message(
-                CHECKLIST.DISCUSSIONS, information["discussions"]["totalCount"] == 0
             ),
             CHECKLIST.DELETES_HEAD["description"]: get_message(
                 CHECKLIST.DELETES_HEAD, information["deleteBranchOnMerge"]
@@ -225,13 +189,14 @@ def get_repo_information(
 def audit_alerts(
     client: GitHubClient, organization: str, repository: str, alerts: List[dict]
 ) -> dict:
+    """Audit dependabot alerts."""
     vulnerabilities = [
-        alerts
-        for alerts in alerts
+        alert
+        for alert in alerts
         if (
-            alerts["createdAt"]
+            alert["createdAt"]
             < (datetime.now() - timedelta(ALERTS_WEEKS_SINCE_CREATED * 7)).isoformat()
-            and alerts["securityVulnerability"]["advisory"]["severity"]
+            and alert["securityVulnerability"]["advisory"]["severity"]
             in ALERTS_INCLUDED_SEVERITIES
         )
     ]
@@ -249,6 +214,7 @@ def audit_alerts(
 
 
 def review_files(client: GitHubClient, organization: str, repository: str) -> dict:
+    """Review required files in the repository."""
     file_audit: dict = {}
 
     files_to_review = [
@@ -271,7 +237,8 @@ def review_files(client: GitHubClient, organization: str, repository: str) -> di
     return file_audit
 
 
-def get_result(results: dict, rules: dict) -> int:
+def calculate_score(results: dict, rules: dict) -> int:
+    """Calculate the total score based on audit results."""
     score = 0
 
     for property in rules:
@@ -284,30 +251,47 @@ def get_result(results: dict, rules: dict) -> int:
     return score
 
 
-def save_to_json(report: dict, file_name: str) -> None:
-    folder_name = "reports"
+def output_to_github_actions(
+    repository: str, results: dict
+) -> None:
+    """
+    Output audit results to GitHub Actions job summary.
 
-    path: str = ""
-    if file_name:
-        _, ext = os.path.splitext(file_name)
-        if (not ext) or (ext != ".json"):
-            file_name += ".json"
-        path = f"{folder_name}/{file_name}"
-    else:
-        path = f"{folder_name}/audit-result.json"
+    Args:
+        repository: Repository name
+        results: Dictionary of all audit results
+    """
+    github_step_summary = os.getenv("GITHUB_STEP_SUMMARY")
 
-    logger.info(f"Saving report to {path}")
-    json_report = json.dumps(report, indent=4)
+    # Create a markdown summary
+    summary = f"""# Repository Audit Results: {repository}
 
-    if not os.path.exists(f"{folder_name}/"):
-        os.mkdir(folder_name)
 
-    with open(path, "w") as outfile:
-        outfile.write(json_report)
+## Audit Details
+
+| Check | Result |
+|-------|--------|
+"""
+
+    # Sort results for consistent output
+    for check, result in sorted(results.items()):
+        status_emoji = "✅" if result == CHECKLIST_DEFAULT_SUCCESS_MESSAGE else "❌"
+        summary += f"| {check} | {status_emoji} {result} |\n"
+
+    # Write to job summary
+    if github_step_summary:
+        with open(github_step_summary, "a") as f:
+            f.write(summary)
+
+    # Also print to stdout
+    print(summary)
 
 
 def save_to_csv(report: pd.DataFrame, file_name: str) -> None:
     folder_name = "reports"
+
+    if not os.path.exists(f"{folder_name}/"):
+        os.mkdir(folder_name)
 
     path: str = ""
     if file_name:
@@ -321,8 +305,3 @@ def save_to_csv(report: pd.DataFrame, file_name: str) -> None:
     logger.info(f"Saving report to {path}")
 
     report.to_csv(path, index=False)
-
-
-def get_file() -> dict:
-    with open("scoring.json", "r") as file:
-        return json.loads(file.read())

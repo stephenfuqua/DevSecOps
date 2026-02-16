@@ -3,6 +3,12 @@
 # The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
 # See the LICENSE and NOTICES files in the project root for more information.
 
+"""
+Entry point for GitHub Actions auditor.
+This version is designed to run on a single repository and output
+results to GitHub Actions job output instead of generating HTML files.
+"""
+
 import sys
 import logging
 
@@ -33,7 +39,7 @@ def _main():
     try:
         run_audit(config)
     except Exception as e:
-        logging.getLogger(__name__).error(e)
+        logging.getLogger(__name__).error(e, exc_info=True)
 
     if error_tracker.fired:
         print(

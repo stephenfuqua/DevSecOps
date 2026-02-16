@@ -8,7 +8,7 @@
         "HAS CODE_OF_CONDUCT": 1,
         "Requires Signed commits": 3,
         "Wiki Disabled": 1,
-        "Issues Disabled": 1,
+        "Issues Enabled": 1,
         "Projects Disabled": 1,
         "Discussions Disabled": 1,
         "Has Unit Tests": 5,

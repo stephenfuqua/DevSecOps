@@ -52,9 +52,8 @@ Run `poetry run pytest` to execute unit tests
 * **Requires PR**: Branch protection for `main` requires a pull request.
 * **Admin cannot bypass PR**: Branch protection for `main` cannot be bypassed by an admin.
 * **Wiki Disabled**: Wikis are disabled.
-* **Issues Disabled**: Issues are disabled.
+* **Issues Enabled**: Issues are enabled.
 * **Projects Disabled**: Projects are disabled.
-* **Discussions Disabled**: Discussions are disabled.
 * **Has Unit Tests**: There is an action step with "unit test" in the name.
 * **Has Linter**: There is an action step with "lint" / "linter" / "linting" in the name.
 * **Deletes head branch**: Automatically deletes head branches on merge.

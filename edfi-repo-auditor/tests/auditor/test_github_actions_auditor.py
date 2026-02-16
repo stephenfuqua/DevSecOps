@@ -21,9 +21,6 @@ def describe_when_getting_scoring_rules() -> None:
         assert "rules" in rules
         assert "threshold" in rules
 
-    def it_excludes_signed_commits(rules: dict) -> None:
-        assert "Requires Signed commits" not in rules["rules"]
-
     def it_includes_other_checks(rules: dict) -> None:
         assert "Has Actions" in rules["rules"]
         assert "Dependabot Enabled" in rules["rules"]

@@ -14,11 +14,9 @@ checklist = namedtuple(
         "APPROVED_ACTIONS",
         "TEST_REPORTER",
         "UNIT_TESTS",
-        "SIGNED_COMMITS",
         "WIKI",
         "ISSUES",
         "PROJECTS",
-        "DISCUSSIONS",
         "DELETES_HEAD",
         "USES_SQUASH",
         "LICENSE_INFORMATION",
@@ -37,19 +35,11 @@ CHECKLIST = checklist(
     },
     TEST_REPORTER={"description": "Uses Test Reporter", "fail": "Not found"},
     UNIT_TESTS={"description": "Has Unit Tests", "fail": "Not found"},
-    SIGNED_COMMITS={
-        "description": "Requires Signed commits",
-        "fail": "No. Commits should be signed",
-    },
     WIKI={"description": "Wiki Disabled", "fail": "WARNING: Wiki is enabled"},
-    ISSUES={"description": "Issues Disabled", "fail": "WARNING: Issues are enabled"},
+    ISSUES={"description": "Issues Enabled", "fail": "WARNING: Issues are not enabled"},
     PROJECTS={
         "description": "Projects Disabled",
         "fail": "WARNING: Projects are enabled",
-    },
-    DISCUSSIONS={
-        "description": "Discussions Disabled",
-        "fail": "WARNING: Discussions are enabled",
     },
     DELETES_HEAD={
         "description": "Deletes head branch",

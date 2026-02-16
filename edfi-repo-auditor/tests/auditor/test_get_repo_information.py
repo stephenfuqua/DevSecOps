@@ -38,10 +38,8 @@ def describe_when_getting_repo_info() -> None:
                 return get_repo_information(mock_client, OWNER, REPO)
 
             def it_returns_no_rules(results: dict) -> None:
-                assert (
-                    results[CHECKLIST.SIGNED_COMMITS["description"]]
-                    == CHECKLIST.SIGNED_COMMITS["fail"]
-                )
+                # TODO
+                assert str(results) == "??"
 
         def describe_given_there_are_active_rulesets_for_main_branch() -> None:
             RESPONSE = {
@@ -58,7 +56,6 @@ def describe_when_getting_repo_info() -> None:
                 "hasWikiEnabled": False,
                 "hasIssuesEnabled": False,
                 "hasProjectsEnabled": False,
-                "discussions": {"totalCount": 0},
                 "deleteBranchOnMerge": False,
                 "squashMergeAllowed": True,
                 "licenseInfo": None,
@@ -73,10 +70,8 @@ def describe_when_getting_repo_info() -> None:
                 return get_repo_information(mock_client, OWNER, REPO)
 
             def it_returns_rules_for_main(results: dict) -> None:
-                assert (
-                    results[CHECKLIST.SIGNED_COMMITS["description"]]
-                    == CHECKLIST_DEFAULT_SUCCESS_MESSAGE
-                )
+                # TODO
+                assert str(results) == "??"
 
         def describe_given_there_are_active_rulesets_for_other_branch() -> None:
             RESPONSE = {
@@ -91,9 +86,8 @@ def describe_when_getting_repo_info() -> None:
                     ]
                 },
                 "hasWikiEnabled": False,
-                "hasIssuesEnabled": False,
+                "hasIssuesEnabled": True,
                 "hasProjectsEnabled": False,
-                "discussions": {"totalCount": 0},
                 "deleteBranchOnMerge": False,
                 "squashMergeAllowed": True,
                 "licenseInfo": {"key": "test-key"},
@@ -108,7 +102,5 @@ def describe_when_getting_repo_info() -> None:
                 return get_repo_information(mock_client, OWNER, REPO)
 
             def it_returns_rules_for_main(results: dict) -> None:
-                assert (
-                    results[CHECKLIST.SIGNED_COMMITS["description"]]
-                    == CHECKLIST.SIGNED_COMMITS["fail"]
-                )
+                # TODO
+                assert str(results) == "??"

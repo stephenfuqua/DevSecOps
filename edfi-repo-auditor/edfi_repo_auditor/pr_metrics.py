@@ -343,8 +343,8 @@ def audit_reviewer_load_balance(
         except RuntimeError as e:
             logger.warning(f"Failed to fetch reviews for PR #{pr['number']}: {e}")
 
-    total_reviews = sum(reviewer_counts.values())
-    if total_reviews == 0:
+    total_reviewers = sum(reviewer_counts.values())
+    if total_reviewers == 0:
         return {
             "top_reviewer_share_percent": None,
             "top_3_reviewers_share_percent": None,
@@ -354,14 +354,14 @@ def audit_reviewer_load_balance(
 
     sorted_reviewers = sorted(reviewer_counts.values(), reverse=True)
 
-    top_reviewer_share = (sorted_reviewers[0] / total_reviews) * 100
+    top_reviewer_share = (sorted_reviewers[0] / total_reviewers) * 100
     top_3_sum = sum(sorted_reviewers[:3])
-    top_3_share = (top_3_sum / total_reviews) * 100
+    top_3_share = (top_3_sum / total_reviewers) * 100
 
     return {
         "top_reviewer_share_percent": round(top_reviewer_share, 2),
         "top_3_reviewers_share_percent": round(top_3_share, 2),
-        "total_reviews": total_reviews,
+        "total_reviewers": total_reviewers,
         "unique_reviewers": len(reviewer_counts),
     }
 
@@ -449,7 +449,7 @@ def audit_time_to_first_response(
     }
 
 
-def get_basic_pr_metrics(
+def get_pr_metrics(
     client: GitHubClient, owner: str, repository: str
 ) -> Dict[str, object]:
     """
@@ -471,12 +471,19 @@ def get_basic_pr_metrics(
 
     duration = audit_pr_duration(client, owner, repository)
     lead_time = audit_lead_time_for_change(client, owner, repository)
+    first_response = audit_time_to_first_response(client, owner, repository)
+    balance = audit_reviewer_load_balance(client, owner, repository)
 
     # Combine metrics, avoiding duplicate merged_pr_count
     metrics = {
         "avg_pr_duration_days": duration.get("avg_pr_duration_days"),
         "avg_lead_time_days": lead_time.get("avg_lead_time_days"),
         "merged_pr_count": duration.get("merged_pr_count", 0),
+        "first_response": first_response.get("avg_time_to_first_response_hours"),
+        "top_reviewer_share_percent": balance.get("top_reviewer_share_percent"),
+        "top_3_reviewers_share_percent": balance.get("top_3_reviewers_share_percent"),
+        "total_reviewers": balance.get("total_reviewers"),
+        "unique_reviewers": balance.get("unique_reviewers")
     }
 
     return metrics

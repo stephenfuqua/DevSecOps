@@ -6,9 +6,6 @@
 name: Run Full Audit
 on:
   workflow_dispatch:
-  schedule:
-    # Audit on Friday at 5:00 p.m.
-    - cron: '0 17 * * 5'
 
 env:
   PERSONAL_ACCESS_TOKEN: ${{ secrets.EDFI_BUILD_AGENT_PAT }}
@@ -17,16 +14,12 @@ permissions:
   actions: read
   contents: read
   pull-requests: read
-  security-events: write
+  security-events: read
 
 jobs:
   audit:
     name: Audit Ed-Fi Organizations
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        org: [Ed-Fi-Exchange-OSS, Ed-Fi-Alliance-OSS, Ed-Fi-Closed]
     defaults:
       run:
         working-directory: edfi-repo-auditor
@@ -38,22 +31,22 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Install Python 3.9
+      - name: Install Python 3.12
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
-          python-version: "3.9"
+          python-version: "3.12"
           cache: "poetry"
 
       - name: Install dependencies
         run: poetry install
 
-      - name: Audit ${{ matrix.org }}
-        run: poetry run python edfi_repo_auditor -p ${{ env.PERSONAL_ACCESS_TOKEN }} -s -o ${{ matrix.org }}  -f ${{ matrix.org }}
+      - name: Audit Ed-Fi-Alliance-OSS
+        run: poetry run python edfi_repo_auditor -p ${{ env.PERSONAL_ACCESS_TOKEN }} -s -o Ed-Fi-Alliance-OSS  -f Ed-Fi-Alliance-OSS
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0
         with:
-          name: audit-result-${{ matrix.org }}
+          name: audit-result-Ed-Fi-Alliance-OSS
           path: ./edfi-repo-auditor/reports/*
           if-no-files-found: error
           retention-days: 10

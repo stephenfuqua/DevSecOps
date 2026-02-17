@@ -361,37 +361,3 @@ class GitHubClient:
             }
             for review in reviews
         ]
-
-    def get_pull_request_comments(
-        self, owner: str, repository: str, pr_number: int
-    ) -> List[dict]:
-        """
-        Get comments for a specific pull request (issue comments).
-
-        Args:
-            owner: Repository owner
-            repository: Repository name
-            pr_number: Pull request number
-
-        Returns:
-            List of comment records with user, created_at
-        """
-        if len(owner.strip()) == 0:
-            raise ValueError("owner cannot be blank")
-        if len(repository.strip()) == 0:
-            raise ValueError("repository cannot be blank")
-
-        url = f"{API_URL}/repos/{owner}/{repository}/issues/{pr_number}/comments"
-        comments = self._execute_api_call(
-            f"Getting comments for PR #{pr_number} in {owner}/{repository}",
-            "GET",
-            url,
-        )
-
-        return [
-            {
-                "user": comment.get("user", {}).get("login"),
-                "created_at": comment.get("created_at"),
-            }
-            for comment in comments
-        ]

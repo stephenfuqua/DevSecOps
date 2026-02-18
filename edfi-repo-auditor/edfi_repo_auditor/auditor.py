@@ -23,6 +23,7 @@ from edfi_repo_auditor.checklist import (
 )
 from edfi_repo_auditor.config import Configuration
 from edfi_repo_auditor.github_client import GitHubClient
+from edfi_repo_auditor.ossf_score import get_ossf_score
 from edfi_repo_auditor.pr_metrics import get_pr_metrics
 
 
@@ -65,8 +66,10 @@ def run_audit(config: Configuration) -> None:
         logger.debug(f"Files: {file_review}")
         pr_metrics = get_pr_metrics(client, config.organization, repository)
         logger.debug(f"PR Metrics: {pr_metrics}")
+        ossf_score = get_ossf_score(organization, repository)
+        logger.debug(f"OpenSSF Score: {ossf_score}")
 
-        results = {**actions, **file_review, **repo_config, **pr_metrics}
+        results = {**actions, **file_review, **repo_config, **pr_metrics, **ossf_score}
 
         output_to_github_actions(repository, results)
 
@@ -77,6 +80,7 @@ def run_audit(config: Configuration) -> None:
                 **file_review,
                 **repo_config,
                 **pr_metrics,
+                **ossf_score,
             }
         )
 

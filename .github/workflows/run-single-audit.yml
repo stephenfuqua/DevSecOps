@@ -64,7 +64,7 @@ jobs:
 
       - name: Run the auditor
         run: |
-          poetry run python edfi_repo_auditor/__main_github_actions__.py \
+          poetry run python edfi_repo_auditor \
             -p ${{ env.PERSONAL_ACCESS_TOKEN }} \
             -s -o ${{ github.event.inputs.organization }} \
             -r ${{ github.event.inputs.repository }}

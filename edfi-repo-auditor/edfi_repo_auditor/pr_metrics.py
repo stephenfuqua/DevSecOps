@@ -22,6 +22,18 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 LAST_N_DAYS = 30
 
+AVG_PR_DURATION_DAYS_KEY = "Avg PR Duration (days)"
+MERGED_PR_COUNT_KEY = "Merged PR Count"
+AVG_LEAD_TIME_DAYS_KEY = "Avg Lead Time (days)"
+AVG_TIME_TO_FIRST_APPROVAL_HOURS_KEY = "Avg Time to First Approval (hours)"
+AVG_REVIEWS_PER_PR_KEY = "Avg Reviews per PR"
+AVG_APPROVALS_PER_PR_KEY = "Avg Approvals per PR"
+TOP_REVIEWER_SHARE_PERCENT_KEY = "Top Reviewer Share (%)"
+TOP_THREE_REVIEWERS_SHARE_PERCENT_KEY = "Top 3 Reviewers Share (%)"
+TOTAL_REVIEWS_KEY = "Total Reviews"
+UNIQUE_REVIEWERS_KEY = "Unique Reviewers"
+MERGED_PRS_LAST_30_DAYS_KEY = "Number of Merged PRs (last 30 days)"
+
 
 def _parse_datetime(dt_str: Optional[object]) -> Optional[datetime]:
     """Parse an ISO 8601 datetime string to datetime object."""
@@ -49,7 +61,7 @@ def audit_pr_duration(merged_prs: List[Dict]) -> Dict[str, object]:
     """
 
     if len(merged_prs) == 0:
-        return {"Avg PR Duration (days)": None}
+        return {AVG_PR_DURATION_DAYS_KEY: None}
 
     durations = []
     for pr in merged_prs:
@@ -62,13 +74,13 @@ def audit_pr_duration(merged_prs: List[Dict]) -> Dict[str, object]:
 
     if not durations:
         return {
-            "Avg PR Duration (days)": None,
-            "Merged PR Count": len(merged_prs),
+            AVG_PR_DURATION_DAYS_KEY: None,
+            MERGED_PR_COUNT_KEY: len(merged_prs),
         }
 
     avg_duration = sum(durations) / len(durations)
 
-    return {"Avg PR Duration (days)": round(avg_duration, 2)}
+    return {AVG_PR_DURATION_DAYS_KEY: round(avg_duration, 2)}
 
 
 def audit_lead_time_for_change(merged_prs: List[Dict]) -> Dict[str, object]:
@@ -87,7 +99,7 @@ def audit_lead_time_for_change(merged_prs: List[Dict]) -> Dict[str, object]:
     """
 
     if len(merged_prs) == 0:
-        return {"Avg Lead Time (days)": None}
+        return {AVG_LEAD_TIME_DAYS_KEY: None}
 
     lead_times = []
     for pr in merged_prs:
@@ -99,11 +111,11 @@ def audit_lead_time_for_change(merged_prs: List[Dict]) -> Dict[str, object]:
             lead_times.append(lead_time)
 
     if not lead_times:
-        return {"Avg Lead Time (days)": None}
+        return {AVG_LEAD_TIME_DAYS_KEY: None}
 
     avg_lead_time = sum(lead_times) / len(lead_times)
 
-    return {"Avg Lead Time (days)": round(avg_lead_time, 2)}
+    return {AVG_LEAD_TIME_DAYS_KEY: round(avg_lead_time, 2)}
 
 
 def audit_pr_review_cycle(reviews: Dict[int, List[Dict]]) -> Dict[str, object]:
@@ -123,9 +135,9 @@ def audit_pr_review_cycle(reviews: Dict[int, List[Dict]]) -> Dict[str, object]:
 
     if len(reviews) == 0:
         return {
-            "Avg Time to First Approval (hours)": None,
-            "Avg Reviews per PR": None,
-            "Avg Approvals per PR": None,
+            AVG_TIME_TO_FIRST_APPROVAL_HOURS_KEY: None,
+            AVG_REVIEWS_PER_PR_KEY: None,
+            AVG_APPROVALS_PER_PR_KEY: None,
         }
 
     times_to_first_approval: List[float] = []
@@ -183,9 +195,9 @@ def audit_pr_review_cycle(reviews: Dict[int, List[Dict]]) -> Dict[str, object]:
         return round(sum(values) / len(values), 2)
 
     return {
-        "Avg Time to First Approval (hours)": _average(times_to_first_approval),
-        "Avg Reviews per PR": _average(review_counts),
-        "Avg Approvals per PR": _average(approval_counts),
+        AVG_TIME_TO_FIRST_APPROVAL_HOURS_KEY: _average(times_to_first_approval),
+        AVG_REVIEWS_PER_PR_KEY: _average(review_counts),
+        AVG_APPROVALS_PER_PR_KEY: _average(approval_counts),
     }
 
 
@@ -205,10 +217,10 @@ def audit_reviewer_load_balance(reviews: Dict[int, List[Dict]]) -> Dict[str, obj
     """
     if len(reviews) == 0:
         return {
-            "Top Reviewer Share (%)": None,
-            "Top 3 Reviewers Share (%)": None,
-            "Total Reviews": 0,
-            "Unique Reviewers": 0,
+            TOP_REVIEWER_SHARE_PERCENT_KEY: None,
+            TOP_THREE_REVIEWERS_SHARE_PERCENT_KEY: None,
+            TOTAL_REVIEWS_KEY: 0,
+            UNIQUE_REVIEWERS_KEY: 0,
         }
 
     reviewer_counts: Dict[str, int] = {}
@@ -222,10 +234,10 @@ def audit_reviewer_load_balance(reviews: Dict[int, List[Dict]]) -> Dict[str, obj
     total_reviewers = sum(reviewer_counts.values())
     if total_reviewers == 0:
         return {
-            "Top Reviewer Share (%)": None,
-            "Top 3 Reviewers Share (%)": None,
-            "Total Reviews": 0,
-            "Unique Reviewers": 0,
+            TOP_REVIEWER_SHARE_PERCENT_KEY: None,
+            TOP_THREE_REVIEWERS_SHARE_PERCENT_KEY: None,
+            TOTAL_REVIEWS_KEY: 0,
+            UNIQUE_REVIEWERS_KEY: 0,
         }
 
     sorted_reviewers = sorted(reviewer_counts.values(), reverse=True)
@@ -235,10 +247,10 @@ def audit_reviewer_load_balance(reviews: Dict[int, List[Dict]]) -> Dict[str, obj
     top_3_share = (top_3_sum / total_reviewers) * 100
 
     return {
-        "Top Reviewer Share (%)": round(top_reviewer_share, 2),
-        "Top 3 Reviewers Share (%)": round(top_3_share, 2),
-        "Total Reviews": total_reviewers,
-        "Unique Reviewers": len(reviewer_counts),
+        TOP_REVIEWER_SHARE_PERCENT_KEY: round(top_reviewer_share, 2),
+        TOP_THREE_REVIEWERS_SHARE_PERCENT_KEY: round(top_3_share, 2),
+        TOTAL_REVIEWS_KEY: total_reviewers,
+        UNIQUE_REVIEWERS_KEY: len(reviewer_counts),
     }
 
 
@@ -294,7 +306,7 @@ def get_pr_metrics(
 
     # Combine metrics
     return (
-        {"Number of Merged PRs (last 30 days)": len(merged_prs)}
+        {MERGED_PRS_LAST_30_DAYS_KEY: len(merged_prs)}
         | duration
         | review_cycle
         | lead_time

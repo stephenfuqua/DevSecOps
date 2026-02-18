@@ -7,6 +7,8 @@
 from typing import Dict, List
 
 from edfi_repo_auditor.pr_metrics import (
+    AVG_LEAD_TIME_DAYS_KEY,
+    AVG_PR_DURATION_DAYS_KEY,
     audit_pr_duration,
     audit_lead_time_for_change,
 )
@@ -34,13 +36,13 @@ def describe_audit_pr_duration() -> None:
 
             result = audit_pr_duration(merged_prs)
 
-            assert result["Avg PR Duration (days)"] == 1.5
+            assert result[AVG_PR_DURATION_DAYS_KEY] == 1.5
 
     def describe_given_no_prs() -> None:
         def it_returns_none_for_duration() -> None:
             result = audit_pr_duration([])
 
-            assert result["Avg PR Duration (days)"] is None
+            assert result[AVG_PR_DURATION_DAYS_KEY] is None
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_invalid_entries() -> None:
@@ -63,7 +65,7 @@ def describe_audit_pr_duration() -> None:
 
             result = audit_pr_duration(merged_prs)
 
-            assert result["Avg PR Duration (days)"] == 1.0
+            assert result[AVG_PR_DURATION_DAYS_KEY] == 1.0
 
 
 def describe_audit_lead_time_for_change() -> None:
@@ -86,7 +88,7 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["Avg Lead Time (days)"] == 1.5
+            assert result[AVG_LEAD_TIME_DAYS_KEY] == 1.5
 
     def describe_given_no_merged_prs() -> None:
         def it_returns_none_for_lead_time() -> None:
@@ -101,7 +103,7 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["Avg Lead Time (days)"] is None
+            assert result[AVG_LEAD_TIME_DAYS_KEY] is None
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_entries_without_created_or_merged_at() -> None:
@@ -128,4 +130,4 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["Avg Lead Time (days)"] == 2.0
+            assert result[AVG_LEAD_TIME_DAYS_KEY] == 2.0

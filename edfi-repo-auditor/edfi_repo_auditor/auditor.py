@@ -266,8 +266,7 @@ def output_to_github_actions(repository: str, results: dict) -> None:
 
     # Sort results for consistent output
     for check, result in sorted(results.items()):
-        status_emoji = "✅" if result == CHECKLIST_DEFAULT_SUCCESS_MESSAGE else "❌"
-        summary += f"| {check} | {status_emoji} {result} |\n"
+        summary += f"| {check} | {result} |\n"
 
     # Write to job summary
     if github_step_summary:

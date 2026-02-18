@@ -3,6 +3,9 @@
 # The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
 # See the LICENSE and NOTICES files in the project root for more information.
 
+
+from typing import Dict, List
+
 from edfi_repo_auditor.pr_metrics import (
     audit_pr_duration,
     audit_lead_time_for_change,
@@ -12,7 +15,7 @@ from edfi_repo_auditor.pr_metrics import (
 def describe_audit_pr_duration() -> None:
     def describe_given_merged_prs() -> None:
         def it_computes_correct_average_duration() -> None:
-            merged_prs = [
+            merged_prs: List[Dict] = [
                 {
                     "number": 1,
                     "created_at": "2024-01-01T10:00:00Z",
@@ -41,7 +44,7 @@ def describe_audit_pr_duration() -> None:
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_invalid_entries() -> None:
-            merged_prs = [
+            merged_prs: List[Dict] = [
                 {
                     "number": 1,
                     "created_at": None,
@@ -87,7 +90,7 @@ def describe_audit_lead_time_for_change() -> None:
 
     def describe_given_no_merged_prs() -> None:
         def it_returns_none_for_lead_time() -> None:
-            merged_prs = [
+            merged_prs: List[Dict] = [
                 {
                     "number": 1,
                     "created_at": "2024-01-01T10:00:00Z",
@@ -102,7 +105,7 @@ def describe_audit_lead_time_for_change() -> None:
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_entries_without_created_or_merged_at() -> None:
-            merged_prs = [
+            merged_prs: List[Dict] = [
                 {
                     "number": 1,
                     "created_at": None,

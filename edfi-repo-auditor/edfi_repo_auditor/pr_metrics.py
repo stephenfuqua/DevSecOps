@@ -23,19 +23,17 @@ logger: logging.Logger = logging.getLogger(__name__)
 LAST_N_DAYS = 30
 
 
-def _parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
+def _parse_datetime(dt_str: Optional[object]) -> Optional[datetime]:
     """Parse an ISO 8601 datetime string to datetime object."""
     if dt_str is None:
         return None
     try:
-        return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+        return datetime.fromisoformat(str(dt_str).replace("Z", "+00:00"))
     except (ValueError, AttributeError):
         return None
 
 
-def audit_pr_duration(
-    merged_prs: List[Dict]
-) -> Dict[str, object]:
+def audit_pr_duration(merged_prs: List[Dict]) -> Dict[str, object]:
     """
     Compute average PR duration for merged PRs only.
 
@@ -51,9 +49,7 @@ def audit_pr_duration(
     """
 
     if len(merged_prs) == 0:
-        return {
-            "avg_pr_duration_days": None
-        }
+        return {"avg_pr_duration_days": None}
 
     durations = []
     for pr in merged_prs:
@@ -72,14 +68,10 @@ def audit_pr_duration(
 
     avg_duration = sum(durations) / len(durations)
 
-    return {
-        "avg_pr_duration_days": round(avg_duration, 2)
-    }
+    return {"avg_pr_duration_days": round(avg_duration, 2)}
 
 
-def audit_lead_time_for_change(
-    merged_prs: List[Dict]
-) -> Dict[str, object]:
+def audit_lead_time_for_change(merged_prs: List[Dict]) -> Dict[str, object]:
     """
     Compute average lead time for change (time from PR creation to merge).
 
@@ -95,9 +87,7 @@ def audit_lead_time_for_change(
     """
 
     if len(merged_prs) == 0:
-        return {
-            "avg_lead_time_days": None
-        }
+        return {"avg_lead_time_days": None}
 
     lead_times = []
     for pr in merged_prs:
@@ -109,28 +99,20 @@ def audit_lead_time_for_change(
             lead_times.append(lead_time)
 
     if not lead_times:
-        return {
-            "avg_lead_time_days": None
-        }
+        return {"avg_lead_time_days": None}
 
     avg_lead_time = sum(lead_times) / len(lead_times)
 
-    return {
-        "avg_lead_time_days": round(avg_lead_time, 2)
-    }
+    return {"avg_lead_time_days": round(avg_lead_time, 2)}
 
 
-
-def audit_pr_review_cycle(
-    reviews: Dict[int, Dict[str, object]]
-) -> Dict[str, object]:
+def audit_pr_review_cycle(reviews: Dict[int, List[Dict]]) -> Dict[str, object]:
     """
     Compute PR review cycle metrics.
 
     Args:
         reviews: Mapping of PR number to PR metadata. Each value should include:
-            - created_at: ISO 8601 timestamp for PR creation
-            - reviews: List of review objects with state/submitted_at fields
+            - reviews: List of review objects with state/submitted_at fields, plus the created_at field
 
     Returns:
         Dictionary with:
@@ -143,7 +125,7 @@ def audit_pr_review_cycle(
         return {
             "avg_time_to_first_approval_hours": None,
             "avg_reviews_per_pr": None,
-            "avg_approvals_per_pr": None
+            "avg_approvals_per_pr": None,
         }
 
     times_to_first_approval: List[float] = []
@@ -151,24 +133,31 @@ def audit_pr_review_cycle(
     approval_counts: List[float] = []
 
     for pr_data in reviews.values():
-        pr_reviews = pr_data.get("reviews", []) if isinstance(pr_data, dict) else []
-        if not isinstance(pr_reviews, list):
-            pr_reviews = []
+        normalized_reviews: List[Dict] = []
+        pr_created_at: Optional[datetime] = None
 
-        review_counts.append(float(len(pr_reviews)))
+        if isinstance(pr_data, dict):
+            potential_reviews = pr_data.get("reviews")
+            if isinstance(potential_reviews, list):
+                normalized_reviews = [r for r in potential_reviews if isinstance(r, dict)]
+            elif pr_data.get("state"):
+                normalized_reviews = [pr_data]
+            pr_created_at = _parse_datetime(pr_data.get("created_at"))
+        elif isinstance(pr_data, list):
+            normalized_reviews = [r for r in pr_data if isinstance(r, dict)]
 
-        approvals = [r for r in pr_reviews if r.get("state") == "APPROVED"]
+        review_counts.append(float(len(normalized_reviews)))
+
+        approvals = [r for r in normalized_reviews if r.get("state") == "APPROVED"]
         approval_counts.append(float(len(approvals)))
 
-        created_at = None
-        if isinstance(pr_data, dict):
-            created_at = _parse_datetime(pr_data.get("created_at"))
-            if created_at is None:
-                pr_details = pr_data.get("pr")
-                if isinstance(pr_details, dict):
-                    created_at = _parse_datetime(pr_details.get("created_at"))
+        if pr_created_at is None:
+            for review in normalized_reviews:
+                pr_created_at = _parse_datetime(review.get("created_at"))
+                if pr_created_at is not None:
+                    break
 
-        if not approvals or created_at is None:
+        if not approvals or pr_created_at is None:
             continue
 
         approval_times: List[datetime] = []
@@ -184,8 +173,8 @@ def audit_pr_review_cycle(
             continue
 
         first_approval_time = min(approval_times)
-        if first_approval_time >= created_at:
-            hours = (first_approval_time - created_at).total_seconds() / 3600
+        if first_approval_time >= pr_created_at:
+            hours = (first_approval_time - pr_created_at).total_seconds() / 3600
             times_to_first_approval.append(hours)
 
     def _average(values: List[float]) -> Optional[float]:
@@ -196,13 +185,11 @@ def audit_pr_review_cycle(
     return {
         "avg_time_to_first_approval_hours": _average(times_to_first_approval),
         "avg_reviews_per_pr": _average(review_counts),
-        "avg_approvals_per_pr": _average(approval_counts)
+        "avg_approvals_per_pr": _average(approval_counts),
     }
 
 
-def audit_reviewer_load_balance(
-    reviews: Dict[int, List[Dict]]
-) -> Dict[str, object]:
+def audit_reviewer_load_balance(reviews: Dict[int, List[Dict]]) -> Dict[str, object]:
     """
     Compute reviewer load balance metrics
 
@@ -281,8 +268,6 @@ def get_pr_metrics(
     merged_prs: List[Dict] = []
     for pr in prs:
         merged_at_str = pr.get("merged_at")
-        if merged_at_str is None:
-            continue
         merged_at = _parse_datetime(merged_at_str)
         if merged_at is None:
             continue
@@ -291,10 +276,16 @@ def get_pr_metrics(
 
     reviews: Dict[int, List[Dict]] = {}
     for pr in merged_prs:
+        pr_number = int(pr.get("number", 0))
         try:
-            reviews[pr.get("number")] = client.get_pull_request_reviews(owner, repository, pr["number"])
+            reviews[pr_number] = client.get_pull_request_reviews(
+                owner, repository, pr_number
+            )
+            for review in reviews[pr_number]:
+                if "created_at" not in review or review["created_at"] is None:
+                    review["created_at"] = pr.get("created_at")
         except RuntimeError as e:
-            logger.warning(f"Failed to fetch reviews for PR #{pr['number']}: {e}")
+            logger.warning(f"Failed to fetch reviews for PR #{pr_number}: {e}")
 
     duration = audit_pr_duration(merged_prs)
     review_cycle = audit_pr_review_cycle(reviews)
@@ -302,6 +293,10 @@ def get_pr_metrics(
     balance = audit_reviewer_load_balance(reviews)
 
     # Combine metrics
-    return { "merged_pr_count": len(merged_prs) } | duration | review_cycle | lead_time | balance
-
-
+    return (
+        {"merged_pr_count": len(merged_prs)}
+        | duration
+        | review_cycle
+        | lead_time
+        | balance
+    )

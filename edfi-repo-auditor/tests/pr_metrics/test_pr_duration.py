@@ -34,13 +34,13 @@ def describe_audit_pr_duration() -> None:
 
             result = audit_pr_duration(merged_prs)
 
-            assert result["avg_pr_duration_days"] == 1.5
+            assert result["Avg PR Duration (days)"] == 1.5
 
     def describe_given_no_prs() -> None:
         def it_returns_none_for_duration() -> None:
             result = audit_pr_duration([])
 
-            assert result["avg_pr_duration_days"] is None
+            assert result["Avg PR Duration (days)"] is None
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_invalid_entries() -> None:
@@ -63,7 +63,7 @@ def describe_audit_pr_duration() -> None:
 
             result = audit_pr_duration(merged_prs)
 
-            assert result["avg_pr_duration_days"] == 1.0
+            assert result["Avg PR Duration (days)"] == 1.0
 
 
 def describe_audit_lead_time_for_change() -> None:
@@ -86,7 +86,7 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["avg_lead_time_days"] == 1.5
+            assert result["Avg Lead Time (days)"] == 1.5
 
     def describe_given_no_merged_prs() -> None:
         def it_returns_none_for_lead_time() -> None:
@@ -101,7 +101,7 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["avg_lead_time_days"] is None
+            assert result["Avg Lead Time (days)"] is None
 
     def describe_given_prs_with_missing_timestamps() -> None:
         def it_skips_entries_without_created_or_merged_at() -> None:
@@ -128,4 +128,4 @@ def describe_audit_lead_time_for_change() -> None:
 
             result = audit_lead_time_for_change(merged_prs)
 
-            assert result["avg_lead_time_days"] == 2.0
+            assert result["Avg Lead Time (days)"] == 2.0

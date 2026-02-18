@@ -48,12 +48,23 @@ def describe_get_ossf_score() -> None:
 
             assert result == {"OSSF Score": None}
 
-    def describe_given_http_error() -> None:
+    def describe_given_http_error_500() -> None:
         def it_gracefully_handles_failure() -> None:
             with requests_mock.Mocker() as mock:
                 org = "Ed-Fi"
                 repo = "Repo"
                 mock.get(_build_url(org, repo), status_code=500)
+
+                result = get_ossf_score(org, repo)
+
+            assert result == {"OSSF Score": None}
+
+    def describe_given_http_error_404() -> None:
+        def it_gracefully_handles_failure() -> None:
+            with requests_mock.Mocker() as mock:
+                org = "Ed-Fi"
+                repo = "Repo"
+                mock.get(_build_url(org, repo), status_code=404)
 
                 result = get_ossf_score(org, repo)
 

@@ -23,9 +23,9 @@ def describe_audit_pr_review_cycle() -> None:
 
             result = audit_pr_review_cycle(pr_review_data)
 
-            assert result["avg_reviews_per_pr"] == 2.5
-            assert result["avg_approvals_per_pr"] == 1.5
-            assert result["avg_time_to_first_approval_hours"] == 2.0
+            assert result["Avg Reviews per PR"] == 2.5
+            assert result["Avg Approvals per PR"] == 1.5
+            assert result["Avg Time to First Approval (hours)"] == 2.0
 
     def describe_given_missing_creation_timestamp() -> None:
         def it_skips_time_to_first_approval_when_unknown() -> None:
@@ -38,9 +38,9 @@ def describe_audit_pr_review_cycle() -> None:
 
             result = audit_pr_review_cycle(pr_review_data)
 
-            assert result["avg_reviews_per_pr"] == 0.5
-            assert result["avg_approvals_per_pr"] == 0.5
-            assert result["avg_time_to_first_approval_hours"] is None
+            assert result["Avg Reviews per PR"] == 0.5
+            assert result["Avg Approvals per PR"] == 0.5
+            assert result["Avg Time to First Approval (hours)"] is None
 
     def describe_given_top_level_created_at_only() -> None:
         def it_uses_top_level_created_at_when_present() -> None:
@@ -52,12 +52,12 @@ def describe_audit_pr_review_cycle() -> None:
 
             result = audit_pr_review_cycle(pr_review_data)
 
-            assert result["avg_time_to_first_approval_hours"] == 2.0
+            assert result["Avg Time to First Approval (hours)"] == 2.0
 
     def describe_given_no_reviews() -> None:
         def it_returns_none_metrics() -> None:
             result = audit_pr_review_cycle({})
 
-            assert result["avg_reviews_per_pr"] is None
-            assert result["avg_approvals_per_pr"] is None
-            assert result["avg_time_to_first_approval_hours"] is None
+            assert result["Avg Reviews per PR"] is None
+            assert result["Avg Approvals per PR"] is None
+            assert result["Avg Time to First Approval (hours)"] is None
